@@ -1,6 +1,9 @@
 package org.mangorage.filehost;
 
+import org.mangorage.filehost.networking.Side;
 import org.mangorage.filehost.networking.packets.BasicPacketHandler;
+import org.mangorage.filehost.networking.packets.EchoPacket;
+import org.mangorage.filehost.networking.packets.IPacket;
 import org.mangorage.filehost.networking.packets.PacketResponse;
 
 import java.io.ByteArrayInputStream;
@@ -34,13 +37,23 @@ public class Server extends Thread {
 
     @Override
     public void run() {
+        IPacket sendBack = new EchoPacket("Welcome home client!");
         while (running) {
             PacketResponse response = BasicPacketHandler.recieve(server);
             if (response != null) {
                 response.packet().handle();
+
                 System.out.println("Recieved Packet: %s".formatted(response.packet().getType().getName()));
-                System.out.println("From Side: %s".formatted(response.side()));
+                System.out.println("From Side: %s".formatted(response.sentFrom()));
                 System.out.println("Source: %s".formatted(response.source()));
+                System.out.println("Sending back!");
+
+                BasicPacketHandler.sendPacket(
+                        sendBack,
+                        Side.SERVER,
+                        response.source(),
+                        server
+                );
             }
         }
     }

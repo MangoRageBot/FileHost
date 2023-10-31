@@ -14,7 +14,7 @@ import java.net.DatagramSocket;
 import java.net.SocketAddress;
 
 public class BasicPacketHandler {
-    public static void sendPacket(IPacket packet, Side sendTo, SocketAddress address, DatagramSocket socket) {
+    public static void sendPacket(IPacket packet, Side senderSide, SocketAddress address, DatagramSocket socket) {
         try {
             // Get Packet Data
             ByteArrayOutputStream BOS = new ByteArrayOutputStream();
@@ -26,7 +26,7 @@ public class BasicPacketHandler {
             ByteArrayOutputStream headerBOS = new ByteArrayOutputStream();
             DataOutputStream headerOS = new DataOutputStream(headerBOS);
             headerOS.writeUTF(packet.getType().getName());
-            headerOS.writeInt(sendTo.ordinal());
+            headerOS.writeInt(senderSide.ordinal());
             headerOS.writeInt(data.length);
             byte[] header = headerBOS.toByteArray();
 
