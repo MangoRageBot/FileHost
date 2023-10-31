@@ -1,33 +1,33 @@
 package org.mangorage.filehost;
 
+import org.mangorage.filehost.core.Scheduler;
 import org.mangorage.filehost.networking.Side;
-import org.mangorage.filehost.networking.packets.BasicPacketHandler;
 import org.mangorage.filehost.networking.packets.EchoPacket;
-import org.mangorage.filehost.networking.packets.IPacket;
-import org.mangorage.filehost.networking.packets.PacketResponse;
+import org.mangorage.filehost.networking.packets.FileTransferPacket;
+import org.mangorage.filehost.networking.packets.core.PacketResponse;
+import org.mangorage.filehost.networking.packets.core.PacketHandler;
+import org.mangorage.filehost.networking.packets.core.Packets;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
+import java.io.File;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public class Server extends Thread {
     public static final int PORT = 25565;
 
     public static void main(String[] args) {
         try {
+            Packets.init();
             new Server().start();
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
+        } catch (SocketException ignored) {}
     }
 
-
-
-    private boolean running = true;
     private final DatagramSocket server;
+    private boolean running = true;
+    private boolean stopping = false;
 
     public Server() throws SocketException {
         System.out.println("Starting Server");
@@ -37,24 +37,40 @@ public class Server extends Thread {
 
     @Override
     public void run() {
-        IPacket sendBack = new EchoPacket("Welcome home client!");
-        while (running) {
-            PacketResponse response = BasicPacketHandler.recieve(server);
-            if (response != null) {
-                response.packet().handle();
+        FileTransferPacket packet = new FileTransferPacket(new File("TEST.txt"), "downloaded.txt");
+        EchoPacket echoPacket = new EchoPacket("Hello World FROM SERVER!");
+        while (!server.isClosed()) {
+            try {
+                ArrayList<DatagramPacket> PACKETS = new ArrayList<>();
+                PacketResponse<?> response = PacketHandler.receivePacket(server, PACKETS);
+                if (response != null) {
+                    PacketHandler.handle(response.packet());
+                    System.out.printf("Received Packet: %s%n", response.packet().getClass().getName());
+                    System.out.printf("From Side: %s%n", response.sentFrom());
+                    System.out.printf("Source: %s%n", response.source());
+                    System.out.println("Sending back!");
 
-                System.out.println("Recieved Packet: %s".formatted(response.packet().getType().getName()));
-                System.out.println("From Side: %s".formatted(response.sentFrom()));
-                System.out.println("Source: %s".formatted(response.source()));
-                System.out.println("Sending back!");
-
-                BasicPacketHandler.sendPacket(
-                        sendBack,
-                        Side.SERVER,
-                        response.source(),
-                        server
-                );
+                    Packets.FILE_TRANSFER_PACKET.send(
+                            packet,
+                            Side.SERVER,
+                            response.source(),
+                            server
+                    );
+                    Scheduler.RUNNER.schedule(() -> {
+                        Packets.ECHO_PACKET.send(
+                                echoPacket,
+                                Side.SERVER,
+                                response.source(),
+                                server
+                        );
+                    }, 5, TimeUnit.SECONDS);
+                }
+            } catch (Exception e) {
+                e.printStackTrace(System.out);
             }
+
+            if (stopping)
+                running = false;
         }
     }
 }
