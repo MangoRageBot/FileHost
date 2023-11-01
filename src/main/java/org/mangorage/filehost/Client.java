@@ -4,6 +4,7 @@ import org.mangorage.filehost.core.Scheduler;
 import org.mangorage.filehost.gui.Window;
 import org.mangorage.filehost.networking.Side;
 import org.mangorage.filehost.networking.packets.HandshakePacket;
+import org.mangorage.filehost.networking.packets.PlaySoundPacket;
 import org.mangorage.filehost.networking.packets.core.PacketResponse;
 import org.mangorage.filehost.networking.packets.core.PacketHandler;
 import org.mangorage.filehost.networking.packets.core.Packets;
@@ -50,6 +51,13 @@ public class Client extends Thread {
 
         Packets.HANDSHAKE_PACKET_PACKET.send(
                 new HandshakePacket(),
+                Side.CLIENT,
+                server,
+                client
+        );
+
+        Packets.PLAY_SOUND_PACKET_PACKET.send(
+                new PlaySoundPacket("sound.wav"),
                 Side.CLIENT,
                 server,
                 client

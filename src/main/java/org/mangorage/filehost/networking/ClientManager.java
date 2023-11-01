@@ -24,6 +24,9 @@ public class ClientManager {
                             socket,
                             server
                     );
+                    System.out.println("Sending Sounnd to -> %s".formatted(
+                            NetworkingUtils.getIPString(socket)
+                    ));
                 });
 
     }
