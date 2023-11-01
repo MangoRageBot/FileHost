@@ -52,14 +52,6 @@ public class Server extends Thread {
                 if (response != null) {
                     PacketHandler.handle(response.packet(), response.packetId(), response.source(), response.sentFrom());
 
-                    Scheduler.RUNNER.scheduleWithFixedDelay(() -> {
-                        Packets.ECHO_PACKET.send(
-                                new EchoPacket("Ping..."),
-                                Side.SERVER,
-                                response.source(),
-                                server
-                        );
-                    }, 0, 2, TimeUnit.SECONDS);
 
                     System.out.printf("Received Packet: %s%n", response.packet().getClass().getName());
                     System.out.printf("From Side: %s%n", response.sentFrom());

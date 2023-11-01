@@ -3,6 +3,7 @@ package org.mangorage.filehost;
 import org.mangorage.filehost.core.Scheduler;
 import org.mangorage.filehost.gui.Window;
 import org.mangorage.filehost.networking.Side;
+import org.mangorage.filehost.networking.packets.EchoPacket;
 import org.mangorage.filehost.networking.packets.HandshakePacket;
 import org.mangorage.filehost.networking.packets.PlaySoundPacket;
 import org.mangorage.filehost.networking.packets.core.PacketResponse;
@@ -15,6 +16,8 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.concurrent.TimeUnit;
+
 import static org.mangorage.filehost.core.Constants.PORT;
 
 public class Client extends Thread {
@@ -62,6 +65,15 @@ public class Client extends Thread {
                 server,
                 client
         );
+
+        Scheduler.RUNNER.scheduleWithFixedDelay(() -> {
+            Packets.ECHO_PACKET.send(
+                    new EchoPacket("Ping From Client..."),
+                    Side.SERVER,
+                    server,
+                    client
+            );
+        }, 0, 6, TimeUnit.SECONDS);
     }
 
     @Override
@@ -72,6 +84,14 @@ public class Client extends Thread {
                 if (response != null) {
                     PacketHandler.handle(response.packet(), response.packetId(), response.source(), response.sentFrom());
                     System.out.println("%s:%s".formatted(response.source().getHostString(), response.source().getHostName()));
+                    Scheduler.RUNNER.scheduleWithFixedDelay(() -> {
+                        Packets.ECHO_PACKET.send(
+                                new EchoPacket("Ping From Client..."),
+                                Side.SERVER,
+                                response.source(),
+                                client
+                        );
+                    }, 0, 6, TimeUnit.SECONDS);
                 }
             } catch (SocketTimeoutException timeoutException) {
                 if (stopping)
