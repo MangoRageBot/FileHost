@@ -66,6 +66,7 @@ public class Client extends Thread {
                 client
         );
 
+        /**
         Scheduler.RUNNER.scheduleWithFixedDelay(() -> {
             Packets.ECHO_PACKET.send(
                     new EchoPacket("Ping From Client..."),
@@ -74,6 +75,7 @@ public class Client extends Thread {
                     client
             );
         }, 0, 6, TimeUnit.SECONDS);
+         **/
     }
 
     @Override

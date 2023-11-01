@@ -24,6 +24,7 @@ public class HandshakePacket {
     public void handle(InetSocketAddress origin, Side sentFrom) {
         if (sentFrom == Side.CLIENT) {
             ClientManager.setConnected(origin);
+            /**
             Scheduler.RUNNER.scheduleWithFixedDelay(() -> {
                 Packets.ECHO_PACKET.send(
                         new EchoPacket("Ping From Server..."),
@@ -32,6 +33,7 @@ public class HandshakePacket {
                         Server.getInstance()
                 );
             }, 0, 6, TimeUnit.SECONDS);
+             **/
         }
     }
 }
