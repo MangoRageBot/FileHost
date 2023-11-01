@@ -65,17 +65,6 @@ public class Client extends Thread {
                 server,
                 client
         );
-
-        /**
-        Scheduler.RUNNER.scheduleWithFixedDelay(() -> {
-            Packets.ECHO_PACKET.send(
-                    new EchoPacket("Ping From Client..."),
-                    Side.SERVER,
-                    server,
-                    client
-            );
-        }, 0, 6, TimeUnit.SECONDS);
-         **/
     }
 
     @Override
@@ -86,14 +75,6 @@ public class Client extends Thread {
                 if (response != null) {
                     PacketHandler.handle(response.packet(), response.packetId(), response.source(), response.sentFrom());
                     System.out.println("%s:%s".formatted(response.source().getHostString(), response.source().getHostName()));
-                    Scheduler.RUNNER.scheduleWithFixedDelay(() -> {
-                        Packets.ECHO_PACKET.send(
-                                new EchoPacket("Ping From Client..."),
-                                Side.SERVER,
-                                response.source(),
-                                client
-                        );
-                    }, 0, 6, TimeUnit.SECONDS);
                 }
             } catch (SocketTimeoutException timeoutException) {
                 if (stopping)
