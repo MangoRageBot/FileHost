@@ -1,6 +1,5 @@
 package org.mangorage.filehost;
 
-import nu.pattern.OpenCV;
 import org.mangorage.filehost.core.Scheduler;
 import org.mangorage.filehost.gui.Window;
 import org.mangorage.filehost.networking.Side;
@@ -8,7 +7,6 @@ import org.mangorage.filehost.networking.packets.EchoPacket;
 import org.mangorage.filehost.networking.packets.core.PacketResponse;
 import org.mangorage.filehost.networking.packets.core.PacketHandler;
 import org.mangorage.filehost.networking.packets.core.Packets;
-import org.opencv.core.Core;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -31,7 +29,7 @@ public class Client extends Thread {
     private boolean stopping = false;
 
     public Client(String IP) throws SocketException {
-        System.out.println("Starting Client Version 1.3");
+        System.out.println("Starting Client Version 1.3 to IP: %s".formatted(IP));
         this.client = new DatagramSocket();
         this.server = new InetSocketAddress(IP, PORT);
 
