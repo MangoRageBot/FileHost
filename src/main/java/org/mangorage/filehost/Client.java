@@ -50,6 +50,8 @@ public class Client extends Thread {
                 PacketResponse<?> response = PacketHandler.receivePacket(client);
                 if (response != null)
                     Scheduler.RUNNER.execute(() -> PacketHandler.handle(response.packet(), response.packetId()));
+                else
+                    System.out.println("Received null packet");
 
             } catch (SocketTimeoutException timeoutException) {
                 if (stopping)
