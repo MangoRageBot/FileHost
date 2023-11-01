@@ -84,7 +84,9 @@ public class BasicFrame extends JPanel implements KeyListener {
 
     @Override
     public void keyTyped(KeyEvent e) {
+        System.out.println("Typed Key");
         if (e.getKeyChar() != 'P') return;
+        System.out.println("Typed Letter P");
         var client = Client.getInstance();
         var server = Client.getServerInst();
         if (client == null || server == null) return;
