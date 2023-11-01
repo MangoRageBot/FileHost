@@ -1,9 +1,12 @@
 package org.mangorage.filehost.networking.packets;
 
+import org.mangorage.filehost.networking.Side;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
@@ -34,7 +37,7 @@ public class FileTransferPacket {
     }
 
 
-    public void handle() {
+    public void handle(InetSocketAddress origin, Side side) {
         System.out.println("HANDLING FILE");
         try {
             Files.write(Path.of(destination), data, StandardOpenOption.CREATE);

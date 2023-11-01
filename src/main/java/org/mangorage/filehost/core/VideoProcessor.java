@@ -120,7 +120,7 @@ public class VideoProcessor {
                     // Process the video frame as needed
                     BufferedImage bufferedImage = frameConverter.convert(frame);
 
-                    image = getCompressedData(bufferedImage, 0.15f);
+                    image = getCompressedData(bufferedImage, 0.005f);
                 }
                 if (frame.samples != null) {
                     // Process the audio frame as needed
@@ -134,11 +134,12 @@ public class VideoProcessor {
                 }
 
                 if (image != null) {
-                    System.out.println("Sending image: %s".formatted(image.length));
-                    videoFramePacketConsumer.accept(new VideoFramePacket(image));
+                    //System.out.println("Sending image: %s".formatted(image.length));
+                    //videoFramePacketConsumer.accept(new VideoFramePacket(image));
                 }
 
                 if (audio != null) {
+                    System.out.println("Sending audio: %s".formatted(audio.length));
                     audioFramePacketConsumer.accept(new AudioFramePacket(toByteArray(audio)));
                 }
 

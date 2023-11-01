@@ -13,6 +13,7 @@ public class Window {
         // Set the default close operation
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.add(BasicFrame.INSTANCE);
+        frame.addKeyListener(BasicFrame.INSTANCE);
 
         // Make the window visible
         frame.setVisible(true);

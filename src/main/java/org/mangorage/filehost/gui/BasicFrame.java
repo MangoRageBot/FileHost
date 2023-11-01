@@ -1,6 +1,11 @@
 package org.mangorage.filehost.gui;
 
+import org.mangorage.filehost.Client;
 import org.mangorage.filehost.core.VideoProcessor;
+import org.mangorage.filehost.networking.Side;
+import org.mangorage.filehost.networking.packets.EchoPacket;
+import org.mangorage.filehost.networking.packets.PlaySoundPacket;
+import org.mangorage.filehost.networking.packets.core.Packets;
 
 import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioFormat;
@@ -10,13 +15,15 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class BasicFrame extends JPanel {
+public class BasicFrame extends JPanel implements KeyListener {
     public static final BasicFrame INSTANCE = new BasicFrame();
     public final Queue<byte[]> frameDataQueue = new LinkedList<>();
     public final Queue<short[]> audioDataQueue = new LinkedList<>();
@@ -72,6 +79,36 @@ public class BasicFrame extends JPanel {
             }
             g.drawString("Showing Incoming Video Stream", 10, 10);
         }
+
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+        if (e.getKeyChar() != 'P') return;
+        var client = Client.getInstance();
+        var server = Client.getServerInst();
+        if (client == null || server == null) return;
+        Packets.ECHO_PACKET.send(
+                new EchoPacket("Test!"),
+                Side.CLIENT,
+                server,
+                client
+        );
+        Packets.PLAY_SOUND_PACKET_PACKET.send(
+                new PlaySoundPacket("sound.wav"),
+                Side.CLIENT,
+                server,
+                client
+        );
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
 
     }
 }

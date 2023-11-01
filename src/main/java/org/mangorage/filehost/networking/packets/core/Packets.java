@@ -3,6 +3,8 @@ package org.mangorage.filehost.networking.packets.core;
 import org.mangorage.filehost.networking.packets.AudioFramePacket;
 import org.mangorage.filehost.networking.packets.EchoPacket;
 import org.mangorage.filehost.networking.packets.FileTransferPacket;
+import org.mangorage.filehost.networking.packets.HandshakePacket;
+import org.mangorage.filehost.networking.packets.PlaySoundPacket;
 import org.mangorage.filehost.networking.packets.VideoFramePacket;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -39,6 +41,22 @@ public class Packets {
             (data, packet) -> packet.encode(data),
             AudioFramePacket::decode,
             AudioFramePacket::handle
+    );
+
+    public static final PacketHandler<HandshakePacket> HANDSHAKE_PACKET_PACKET = PacketHandler.create(
+            HandshakePacket.class,
+            ID.getAndAdd(1),
+            (data, packet) -> packet.encode(data),
+            HandshakePacket::decode,
+            HandshakePacket::handle
+    );
+
+    public static final PacketHandler<PlaySoundPacket> PLAY_SOUND_PACKET_PACKET = PacketHandler.create(
+            PlaySoundPacket.class,
+            ID.getAndAdd(1),
+            (data, packet) -> packet.encode(data),
+            PlaySoundPacket::decode,
+            PlaySoundPacket::handle
     );
 
 

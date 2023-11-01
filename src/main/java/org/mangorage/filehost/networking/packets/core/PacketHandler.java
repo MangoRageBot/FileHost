@@ -10,6 +10,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,7 +19,7 @@ public class PacketHandler<T> {
     private static final HashMap<Integer, PacketHandler<?>> PACKETS = new HashMap<>();
 
 
-    public static PacketResponse<?> receivePacket(DatagramSocket socket) throws IOException, ClassNotFoundException {
+    public static PacketResponse<?> receivePacket(DatagramSocket socket) throws IOException {
         return receivePacket(socket, null);
     }
 
@@ -50,14 +51,14 @@ public class PacketHandler<T> {
                 PACKETS.get(packetId).getDecoder().decode(new DataInputStream(new ByteArrayInputStream(data.getData()))),
                 packetId,
                 from,
-                data.getSocketAddress()
+                (InetSocketAddress) data.getSocketAddress()
         );
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> void handle(T packet, int packetId) {
+    public static <T> void handle(T packet, int packetId, InetSocketAddress origin, Side side) {
         if (PACKETS.containsKey(packetId)) {
-            ((PacketHandler<T>) PACKETS.get(packetId)).getHandler().handle(packet);
+            ((PacketHandler<T>) PACKETS.get(packetId)).getHandler().handle(packet, origin, side);
         }
     }
 
@@ -71,7 +72,7 @@ public class PacketHandler<T> {
     }
 
     public interface IHandler<T> {
-        void handle(T packet);
+        void handle(T packet, InetSocketAddress origin, Side side);
     }
 
     public static <T> PacketHandler<T> create(Class<T> type, int ID, IEncoder<T> encoder, IDecoder<T> decoder, IHandler<T> handler) {

@@ -1,8 +1,11 @@
 package org.mangorage.filehost.networking.packets;
 
+import org.mangorage.filehost.networking.Side;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 public class EchoPacket {
 
@@ -16,7 +19,7 @@ public class EchoPacket {
         this.message = message;
     }
 
-    public void handle() {
+    public void handle(InetSocketAddress origin, Side side) {
         System.out.println("EchoPacket: " + message);
     }
 

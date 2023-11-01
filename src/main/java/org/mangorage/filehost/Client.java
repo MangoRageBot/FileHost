@@ -3,7 +3,7 @@ package org.mangorage.filehost;
 import org.mangorage.filehost.core.Scheduler;
 import org.mangorage.filehost.gui.Window;
 import org.mangorage.filehost.networking.Side;
-import org.mangorage.filehost.networking.packets.EchoPacket;
+import org.mangorage.filehost.networking.packets.HandshakePacket;
 import org.mangorage.filehost.networking.packets.core.PacketResponse;
 import org.mangorage.filehost.networking.packets.core.PacketHandler;
 import org.mangorage.filehost.networking.packets.core.Packets;
@@ -17,9 +17,24 @@ import java.net.SocketTimeoutException;
 import static org.mangorage.filehost.core.Constants.PORT;
 
 public class Client extends Thread {
+    private static Client instance;
+
+    public static DatagramSocket getInstance() {
+        if (instance != null)
+            return instance.client;
+        return null;
+    }
+
+    public static SocketAddress getServerInst() {
+        if (instance != null)
+            return instance.server;
+        return null;
+    }
+
     public static void main(String[] args) throws SocketException {
         Packets.init();
-        new Client("localhost").start();
+        instance = new Client("localhost");
+        instance.start();
         Window.create();
     }
 
@@ -29,14 +44,12 @@ public class Client extends Thread {
     private boolean stopping = false;
 
     public Client(String IP) throws SocketException {
-        System.out.println("Starting Client Version 1.3 to IP: %s".formatted(IP));
+        System.out.println("Starting Client Version 1.5 to IP: %s".formatted(IP));
         this.client = new DatagramSocket();
         this.server = new InetSocketAddress(IP, PORT);
 
-
-        EchoPacket packet = new EchoPacket("Gimmie Video!");
-        Packets.ECHO_PACKET.send(
-                packet,
+        Packets.HANDSHAKE_PACKET_PACKET.send(
+                new HandshakePacket(),
                 Side.CLIENT,
                 server,
                 client
@@ -48,16 +61,15 @@ public class Client extends Thread {
         while (running) {
             try {
                 PacketResponse<?> response = PacketHandler.receivePacket(client);
-                if (response != null)
-                    Scheduler.RUNNER.execute(() -> PacketHandler.handle(response.packet(), response.packetId()));
-                else
-                    System.out.println("Received null packet");
-
+                if (response != null) {
+                    PacketHandler.handle(response.packet(), response.packetId(), response.source(), response.sentFrom());
+                    System.out.println("%s:%s".formatted(response.source().getHostString(), response.source().getHostName()));
+                }
             } catch (SocketTimeoutException timeoutException) {
                 if (stopping)
                     running = false;
                 timeoutException.printStackTrace(System.out);
-            } catch (IOException | ClassNotFoundException e) {
+            } catch (IOException e) {
                 e.printStackTrace(System.out);
             }
         }
