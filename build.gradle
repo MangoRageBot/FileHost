@@ -19,6 +19,13 @@ buildscript {
     }
 }
 
+plugins {
+    id 'application'
+    id 'org.javamodularity.moduleplugin' version '1.8.12'
+    id 'org.openjfx.javafxplugin' version '0.0.13'
+    id 'org.beryx.jlink' version '2.25.0'
+}
+
 apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'java'
 
@@ -37,18 +44,32 @@ dependencies {
     testImplementation platform('org.junit:junit-bom:5.9.1')
     testImplementation 'org.junit.jupiter:junit-jupiter'
 
-    implementation 'org.openpnp:opencv:4.7.0-0'
-    implementation group: 'org.bytedeco', name: 'javacv-platform', version: '1.5.9'
-    implementation 'xuggle:xuggle-xuggler:5.4'
+    //implementation 'xuggle:xuggle-xuggler:5.4'
+    // JavaFX dependencies
+    implementation 'org.openjfx:javafx-base:11.0.2'
+    implementation 'org.openjfx:javafx-media:11.0.2'
+    implementation 'org.openjfx:javafx-swing:21.0.1'
+
+    implementation("com.google.code.gson:gson:2.10.1")
 
 }
+
 
 test {
     useJUnitPlatform()
 }
 
+javafx {
+    version = '17.0.6'
+    modules = ['javafx.media', 'javafx.controls', 'javafx.swing']
+}
+application {
+    // Other application-related configurations
+
+    mainClassName = 'org.mangorage.filehost.Core'
+}
 jar {
     manifest {
-        attributes 'Main-Class': 'org.mangorage.filehost.RemoteClient'
+        attributes 'Main-Class': 'org.mangorage.filehost.Core'
     }
 }

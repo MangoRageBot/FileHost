@@ -1,18 +1,15 @@
 package org.mangorage.filehost;
 
-import org.mangorage.filehost.core.Scheduler;
 import org.mangorage.filehost.networking.Side;
-import org.mangorage.filehost.networking.packets.EchoPacket;
 import org.mangorage.filehost.networking.packets.core.PacketResponse;
 import org.mangorage.filehost.networking.packets.core.PacketHandler;
 import org.mangorage.filehost.networking.packets.core.Packets;
-import org.opencv.core.Core;
+import org.mangorage.filehost.networking.packets.core.RatelimitedPacketSender;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 import static org.mangorage.filehost.core.Constants.PORT;
 
@@ -20,26 +17,37 @@ public class Server extends Thread {
 
     private static Server instance;
 
-    public static DatagramSocket getInstance() {
+    public static RatelimitedPacketSender getInstance() {
         if (instance != null)
-            return instance.server;
+            return instance.sender;
         return null;
     }
 
+    public static void create(int port) throws SocketException {
+        if (instance != null) {
+            System.out.println("Server already running!");
+            return;
+        }
+        instance = new Server(port);
+        instance.start();
+    }
+
     public static void main(String[] args) throws SocketException {
-        System.load("F:\\open\\opencv\\build\\java\\x64\\%s".formatted(Core.NATIVE_LIBRARY_NAME + ".dll"));
         Packets.init();
-        instance = new Server();
+        instance = new Server(PORT);
         instance.start();
     }
 
     private final DatagramSocket server;
+    private final RatelimitedPacketSender sender;
     private boolean running = true;
     private boolean stopping = false;
 
-    public Server() throws SocketException {
+    private Server(int port) throws SocketException {
         System.out.println("Starting Server Version 1.5");
-        this.server = new DatagramSocket(PORT);
+        this.server = new DatagramSocket(port);
+        sender = new RatelimitedPacketSender(Side.SERVER, server);
+
         System.out.println("Server Started");
     }
 
@@ -52,10 +60,33 @@ public class Server extends Thread {
                 if (response != null) {
                     PacketHandler.handle(response.packet(), response.packetId(), response.source(), response.sentFrom());
 
-
                     System.out.printf("Received Packet: %s%n", response.packet().getClass().getName());
                     System.out.printf("From Side: %s%n", response.sentFrom());
                     System.out.printf("Source: %s%n", response.source());
+
+
+                    /**
+                    Scheduler.RUNNER.schedule(() -> {
+                        VideoProcessor.processWithAudio("video2.mp4", a -> {
+                                    Packets.VIDEO_FRAME_PACKET.send(
+                                            a,
+                                            Side.SERVER,
+                                            response.source(),
+                                            server
+                                    );
+                                },
+                                b -> {
+                                    Packets.AUDIO_FRAME_PACKET_PACKET.send(
+                                            b,
+                                            Side.SERVER,
+                                            response.source(),
+                                            server
+                                    );
+                                });
+                    }, 25, TimeUnit.SECONDS);
+                     **/
+
+
                 }
             } catch (Exception e) {
                 e.printStackTrace(System.out);

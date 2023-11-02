@@ -24,7 +24,7 @@ public class PacketHandler<T> {
     }
 
     public static PacketResponse<?> receivePacket(DatagramSocket socket, @Nullable ArrayList<DatagramPacket> receivedRawPackets) throws IOException {
-        byte[] headerByte = new byte[1024];
+        byte[] headerByte = new byte[12];
         DatagramPacket headerPacket = new DatagramPacket(headerByte, headerByte.length);
         socket.receive(headerPacket);
         if (receivedRawPackets != null)
@@ -33,19 +33,19 @@ public class PacketHandler<T> {
         DataInputStream header = new DataInputStream(new ByteArrayInputStream(headerPacket.getData()));
         int packetId = header.readInt();
         int sideId = header.readInt();
-        if (sideId > Side.values().length || sideId < 0) return null;
-        Side from = Side.values()[sideId];
         int packetLength = header.readInt();
+        if (packetId < 0 || sideId > 1 || sideId < 0 || !PACKETS.containsKey(packetId)) {
+            System.out.println("Received Bad Packet (Packet ID/Type: %s %s) from %s....".formatted(packetId, PACKETS.containsKey(packetId) ? PACKETS.get(packetId).getClazz().getName() : "Unknown", headerPacket.getSocketAddress()));
+            return null;
+        }
+        Side from = Side.values()[sideId];
 
         byte[] packetData = new byte[packetLength];
         DatagramPacket data = new DatagramPacket(packetData, packetData.length);
         socket.receive(data);
+
         if (receivedRawPackets != null)
             receivedRawPackets.add(data);
-
-        if (!PACKETS.containsKey(packetId)) {
-            return null;
-        }
 
         return new PacketResponse<>(
                 PACKETS.get(packetId).getDecoder().decode(new DataInputStream(new ByteArrayInputStream(data.getData()))),
@@ -76,25 +76,27 @@ public class PacketHandler<T> {
     }
 
     public static <T> PacketHandler<T> create(Class<T> type, int ID, IEncoder<T> encoder, IDecoder<T> decoder, IHandler<T> handler) {
-        PacketHandler<T> packetHandler = new PacketHandler<>(ID, encoder, decoder, handler);
+        PacketHandler<T> packetHandler = new PacketHandler<>(type, ID, encoder, decoder, handler);
         PACKETS.put(ID, packetHandler);
         return packetHandler;
     }
 
 
+    private final Class<T> clazz;
     private final int ID;
     private final IEncoder<T> encoder;
     private final IDecoder<T> decoder;
     private final IHandler<T> handler;
 
-    private PacketHandler(int ID, IEncoder<T> encoder, IDecoder<T> decoder, IHandler<T> handler) {
+    private PacketHandler(Class<T> type, int ID, IEncoder<T> encoder, IDecoder<T> decoder, IHandler<T> handler) {
+        this.clazz = type;
         this.ID = ID;
         this.encoder = encoder;
         this.decoder = decoder;
         this.handler = handler;
     }
 
-    public void send(T packet, Side senderSide, SocketAddress address, DatagramSocket socket) {
+    public void send(T packet, RatelimitedPacketSender sender, SocketAddress sendTo) {
         try {
             // Get Packet Data
             ByteArrayOutputStream BOS = new ByteArrayOutputStream();
@@ -103,22 +105,27 @@ public class PacketHandler<T> {
             byte[] data = BOS.toByteArray();
 
             // Get Header
-            ByteArrayOutputStream headerBOS = new ByteArrayOutputStream();
+            ByteArrayOutputStream headerBOS = new ByteArrayOutputStream(65000);
             DataOutputStream headerOS = new DataOutputStream(headerBOS);
             headerOS.writeInt(ID);
-            headerOS.writeInt(senderSide.ordinal());
+            headerOS.writeInt(sender.getSide().ordinal());
             headerOS.writeInt(data.length);
             byte[] header = headerBOS.toByteArray();
 
             // Create Header and Data Packets
-            DatagramPacket headerPacket = new DatagramPacket(header, header.length, address);
-            DatagramPacket dataPacket = new DatagramPacket(data, data.length, address);
+            DatagramPacket headerPacket = new DatagramPacket(header, header.length, sendTo);
+            DatagramPacket dataPacket = new DatagramPacket(data, data.length, sendTo);
+
+            if (dataPacket.getData().length > 65_527) {
+                System.out.println("Failed to send Packet! To Large Size: %s-> %s".formatted(dataPacket.getData().length, packet.getClass()));
+                return;
+            }
 
             // Send Header and Data Packets
-            socket.send(headerPacket);
-            socket.send(dataPacket);
+            sender.send(headerPacket, dataPacket);
         } catch (IOException e) {
             System.out.println("Packet Had issue: %s".formatted(packet.getClass()));
+            e.printStackTrace(System.out);
         }
     }
 
@@ -128,5 +135,9 @@ public class PacketHandler<T> {
 
     public IHandler<T> getHandler() {
         return handler;
+    }
+
+    public Class<T> getClazz() {
+        return clazz;
     }
 }

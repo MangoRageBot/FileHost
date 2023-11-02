@@ -1,10 +1,9 @@
 package org.mangorage.filehost.gui;
 
 import org.mangorage.filehost.Client;
-import org.mangorage.filehost.core.VideoProcessor;
 import org.mangorage.filehost.networking.Side;
-import org.mangorage.filehost.networking.packets.EchoPacket;
-import org.mangorage.filehost.networking.packets.PlaySoundPacket;
+import org.mangorage.filehost.networking.packets.main.EchoPacket;
+import org.mangorage.filehost.networking.packets.main.PlaySoundPacket;
 import org.mangorage.filehost.networking.packets.core.Packets;
 
 import javax.imageio.ImageIO;
@@ -90,17 +89,16 @@ public class BasicFrame extends JPanel implements KeyListener {
         var client = Client.getInstance();
         var server = Client.getServerInst();
         if (client == null || server == null) return;
+        System.out.println("Sending Play Packet to server...");
         Packets.ECHO_PACKET.send(
                 new EchoPacket("Test!"),
-                Side.CLIENT,
-                server,
-                client
+                client,
+                server
         );
         Packets.PLAY_SOUND_PACKET_PACKET.send(
-                new PlaySoundPacket("sound.wav"),
-                Side.CLIENT,
-                server,
-                client
+                new PlaySoundPacket("sound2.wav"),
+                client,
+                server
         );
     }
 

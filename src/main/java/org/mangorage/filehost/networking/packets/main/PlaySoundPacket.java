@@ -1,9 +1,8 @@
-package org.mangorage.filehost.networking.packets;
+package org.mangorage.filehost.networking.packets.main;
 
 import org.mangorage.filehost.Server;
 import org.mangorage.filehost.networking.ClientManager;
 import org.mangorage.filehost.networking.Side;
-import org.mangorage.filehost.networking.packets.core.PacketHandler;
 import org.mangorage.filehost.networking.packets.core.Packets;
 
 import javax.sound.sampled.AudioFormat;
