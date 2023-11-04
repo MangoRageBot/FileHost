@@ -10,13 +10,13 @@ import java.nio.file.Path;
 public class Constants {
     public static final int PORT = 25565;
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    public record Config(int chunkSize, int packetRate) {}
+    public record Config(int chunkSize, int packetRate, String file) {}
     public static final Config config;
 
     static {
         Path cfg = Path.of("config.json");
         if (!cfg.toFile().exists()) {
-            config = new Config(50_000, 50);
+            config = new Config(50_000, 50, "video2.mp4");
             var json = GSON.toJson(config);
             try {
                 Files.writeString(cfg, json);

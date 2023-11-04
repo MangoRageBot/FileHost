@@ -1,57 +1,43 @@
 package org.mangorage.filehost.networking.packets.core;
 
-import org.jetbrains.annotations.Nullable;
+import org.mangorage.filehost.core.simplebbuffer.SimpleByteBuffer;
 import org.mangorage.filehost.networking.Side;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class PacketHandler<T> {
+    private static final int PACKET_SIZE = 65536;
     private static final HashMap<Integer, PacketHandler<?>> PACKETS = new HashMap<>();
 
 
     public static PacketResponse<?> receivePacket(DatagramSocket socket) throws IOException {
-        return receivePacket(socket, null);
-    }
+        DatagramPacket datagramPacket = new DatagramPacket(new byte[PACKET_SIZE], PACKET_SIZE);
+        socket.receive(datagramPacket);
 
-    public static PacketResponse<?> receivePacket(DatagramSocket socket, @Nullable ArrayList<DatagramPacket> receivedRawPackets) throws IOException {
-        byte[] headerByte = new byte[12];
-        DatagramPacket headerPacket = new DatagramPacket(headerByte, headerByte.length);
-        socket.receive(headerPacket);
-        if (receivedRawPackets != null)
-            receivedRawPackets.add(headerPacket);
+        SimpleByteBuffer headerBuffer = new SimpleByteBuffer(datagramPacket.getData());
+        int packetId = headerBuffer.readInt();
+        Side from = headerBuffer.readEnum(Side.class);
 
-        DataInputStream header = new DataInputStream(new ByteArrayInputStream(headerPacket.getData()));
-        int packetId = header.readInt();
-        int sideId = header.readInt();
-        int packetLength = header.readInt();
-        if (packetId < 0 || sideId > 1 || sideId < 0 || !PACKETS.containsKey(packetId)) {
-            System.out.println("Received Bad Packet (Packet ID/Type: %s %s) from %s....".formatted(packetId, PACKETS.containsKey(packetId) ? PACKETS.get(packetId).getClazz().getName() : "Unknown", headerPacket.getSocketAddress()));
+        System.out.println("%s %s".formatted(packetId, from));
+        SimpleByteBuffer packetBuffer = new SimpleByteBuffer(headerBuffer.readBytes());
+
+        if (packetId < 0 || from == null || !PACKETS.containsKey(packetId)) {
+            System.out.println("Received Bad Packet (Packet ID/Type: %s %s) from %s....".formatted(packetId, PACKETS.containsKey(packetId) ? PACKETS.get(packetId).getClazz().getName() : "Unknown", datagramPacket.getSocketAddress()));
             return null;
         }
-        Side from = Side.values()[sideId];
 
-        byte[] packetData = new byte[packetLength];
-        DatagramPacket data = new DatagramPacket(packetData, packetData.length);
-        socket.receive(data);
-
-        if (receivedRawPackets != null)
-            receivedRawPackets.add(data);
-
+        System.out.println("Response: %s %s %s".formatted(packetId, from, PACKETS.get(packetId).clazz));
+        System.out.println("Packet received with size: %s".formatted(headerBuffer.toReadBytes().length));
         return new PacketResponse<>(
-                PACKETS.get(packetId).getDecoder().decode(new DataInputStream(new ByteArrayInputStream(data.getData()))),
+                PACKETS.get(packetId).getDecoder().decode(packetBuffer),
                 packetId,
                 from,
-                (InetSocketAddress) data.getSocketAddress()
+                (InetSocketAddress) datagramPacket.getSocketAddress()
         );
     }
 
@@ -64,11 +50,11 @@ public class PacketHandler<T> {
 
 
     public interface IEncoder<T> {
-        void encode(DataOutputStream data, T packet) throws IOException;
+        void encode(SimpleByteBuffer data, T packet) throws IOException;
     }
 
     public interface IDecoder<T> {
-        T decode(DataInputStream data) throws IOException;
+        T decode(SimpleByteBuffer data) throws IOException;
     }
 
     public interface IHandler<T> {
@@ -76,6 +62,7 @@ public class PacketHandler<T> {
     }
 
     public static <T> PacketHandler<T> create(Class<T> type, int ID, IEncoder<T> encoder, IDecoder<T> decoder, IHandler<T> handler) {
+        System.out.println("Created Packet Handler for: %s (Packet ID: %s)".formatted(type.getName(), ID));
         PacketHandler<T> packetHandler = new PacketHandler<>(type, ID, encoder, decoder, handler);
         PACKETS.put(ID, packetHandler);
         return packetHandler;
@@ -96,33 +83,25 @@ public class PacketHandler<T> {
         this.handler = handler;
     }
 
-    public void send(T packet, RatelimitedPacketSender sender, SocketAddress sendTo) {
+    public void send(T packet, PacketSender sender, SocketAddress sendTo) {
         try {
-            // Get Packet Data
-            ByteArrayOutputStream BOS = new ByteArrayOutputStream();
-            DataOutputStream OS = new DataOutputStream(BOS);
-            encoder.encode(OS, packet);
-            byte[] data = BOS.toByteArray();
+            SimpleByteBuffer headerBuffer = new SimpleByteBuffer();
+            SimpleByteBuffer packetBuffer = new SimpleByteBuffer();
+            encoder.encode(packetBuffer, packet);
 
-            // Get Header
-            ByteArrayOutputStream headerBOS = new ByteArrayOutputStream(65000);
-            DataOutputStream headerOS = new DataOutputStream(headerBOS);
-            headerOS.writeInt(ID);
-            headerOS.writeInt(sender.getSide().ordinal());
-            headerOS.writeInt(data.length);
-            byte[] header = headerBOS.toByteArray();
+            headerBuffer.writeInt(ID);
+            headerBuffer.writeEnum(sender.getSide());
+            headerBuffer.writeBytes(packetBuffer.toWriteBytes());
 
-            // Create Header and Data Packets
-            DatagramPacket headerPacket = new DatagramPacket(header, header.length, sendTo);
-            DatagramPacket dataPacket = new DatagramPacket(data, data.length, sendTo);
-
-            if (dataPacket.getData().length > 65_527) {
-                System.out.println("Failed to send Packet! To Large Size: %s-> %s".formatted(dataPacket.getData().length, packet.getClass()));
+            byte[] data = headerBuffer.toWriteBytes();
+            if (data.length > PACKET_SIZE) {
+                System.err.println("Unable to send packet %s exceeds packet size of %s, size of packet %s".formatted(packet.getClass().getName(), PACKET_SIZE, data.length));
                 return;
             }
 
-            // Send Header and Data Packets
-            sender.send(headerPacket, dataPacket);
+            DatagramPacket datagramPacket = new DatagramPacket(data, data.length, sendTo);
+            sender.send(datagramPacket);
+            System.out.println("Packet Sent with size: %s".formatted(data.length));
         } catch (IOException e) {
             System.out.println("Packet Had issue: %s".formatted(packet.getClass()));
             e.printStackTrace(System.out);

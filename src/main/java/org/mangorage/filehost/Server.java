@@ -1,10 +1,12 @@
 package org.mangorage.filehost;
 
+import org.mangorage.filehost.core.Scheduler;
 import org.mangorage.filehost.networking.Side;
 import org.mangorage.filehost.networking.packets.core.PacketResponse;
 import org.mangorage.filehost.networking.packets.core.PacketHandler;
 import org.mangorage.filehost.networking.packets.core.Packets;
-import org.mangorage.filehost.networking.packets.core.RatelimitedPacketSender;
+import org.mangorage.filehost.networking.packets.core.PacketSender;
+import org.mangorage.filehost.networking.packets.main.EchoPacket;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -17,7 +19,7 @@ public class Server extends Thread {
 
     private static Server instance;
 
-    public static RatelimitedPacketSender getInstance() {
+    public static PacketSender getInstance() {
         if (instance != null)
             return instance.sender;
         return null;
@@ -39,14 +41,14 @@ public class Server extends Thread {
     }
 
     private final DatagramSocket server;
-    private final RatelimitedPacketSender sender;
+    private final PacketSender sender;
     private boolean running = true;
     private boolean stopping = false;
 
     private Server(int port) throws SocketException {
-        System.out.println("Starting Server Version 1.5");
+        System.out.println("Starting Server Version 1.6");
         this.server = new DatagramSocket(port);
-        sender = new RatelimitedPacketSender(Side.SERVER, server);
+        sender = new PacketSender(Side.SERVER, server);
 
         System.out.println("Server Started");
     }
@@ -55,8 +57,7 @@ public class Server extends Thread {
     public void run() {
         while (!server.isClosed()) {
             try {
-                ArrayList<DatagramPacket> PACKETS = new ArrayList<>();
-                PacketResponse<?> response = PacketHandler.receivePacket(server, PACKETS);
+                PacketResponse<?> response = PacketHandler.receivePacket(server);
                 if (response != null) {
                     PacketHandler.handle(response.packet(), response.packetId(), response.source(), response.sentFrom());
 
@@ -64,29 +65,13 @@ public class Server extends Thread {
                     System.out.printf("From Side: %s%n", response.sentFrom());
                     System.out.printf("Source: %s%n", response.source());
 
-
-                    /**
-                    Scheduler.RUNNER.schedule(() -> {
-                        VideoProcessor.processWithAudio("video2.mp4", a -> {
-                                    Packets.VIDEO_FRAME_PACKET.send(
-                                            a,
-                                            Side.SERVER,
-                                            response.source(),
-                                            server
-                                    );
-                                },
-                                b -> {
-                                    Packets.AUDIO_FRAME_PACKET_PACKET.send(
-                                            b,
-                                            Side.SERVER,
-                                            response.source(),
-                                            server
-                                    );
-                                });
-                    }, 25, TimeUnit.SECONDS);
-                     **/
-
-
+                    if (response.packet() instanceof EchoPacket) {
+                        Packets.ECHO_PACKET.send(
+                                new EchoPacket("Received! Echo"),
+                                sender,
+                                response.source()
+                        );
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace(System.out);

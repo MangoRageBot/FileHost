@@ -1,24 +1,27 @@
 package org.mangorage.filehost;
 
 import org.mangorage.filehost.core.Constants;
+import org.mangorage.filehost.core.Scheduler;
 import org.mangorage.filehost.networking.Side;
-import org.mangorage.filehost.networking.packets.core.RatelimitedPacketSender;
-import org.mangorage.filehost.networking.packets.main.HandshakePacket;
+import org.mangorage.filehost.networking.packets.core.PacketSender;
 import org.mangorage.filehost.networking.packets.core.PacketResponse;
 import org.mangorage.filehost.networking.packets.core.PacketHandler;
 import org.mangorage.filehost.networking.packets.core.Packets;
+import org.mangorage.filehost.networking.packets.main.EchoPacket;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 
 public class Client extends Thread {
     private static Client instance;
 
-    public static RatelimitedPacketSender getInstance() {
+    public static PacketSender getInstance() {
         if (instance != null)
             return instance.sender;
         return null;
@@ -33,7 +36,8 @@ public class Client extends Thread {
     public static void main(String[] args) throws SocketException {
         Constants.init();
         Packets.init();
-        instance = new Client("23.26.60.28:14126");
+        // 23.26.60.28:14126
+        instance = new Client("localhost:25565");
         instance.start();
     }
 
@@ -49,22 +53,17 @@ public class Client extends Thread {
     private final SocketAddress server;
     private final DatagramSocket client;
 
-    private final RatelimitedPacketSender sender;
+    private final PacketSender sender;
     private boolean running = true;
     private boolean stopping = false;
 
     public Client(String IP) throws SocketException {
-        System.out.println("Starting Client Version 1.5 to IP: %s".formatted(IP));
+        System.out.println("Starting Client Version 1.6 to IP: %s".formatted(IP));
         String[] ipArr = IP.split(":");
+
         this.client = new DatagramSocket();
         this.server = new InetSocketAddress(ipArr[0], Integer.parseInt(ipArr[1]));
-        this.sender = new RatelimitedPacketSender(Side.CLIENT, client);
-
-        Packets.HANDSHAKE_PACKET_PACKET.send(
-                new HandshakePacket(),
-                sender,
-                server
-        );
+        this.sender = new PacketSender(Side.CLIENT, client);
     }
 
     @Override
@@ -73,8 +72,13 @@ public class Client extends Thread {
             try {
                 PacketResponse<?> response = PacketHandler.receivePacket(client);
                 if (response != null) {
-                    System.out.println(response.packetId());
-                    PacketHandler.handle(response.packet(), response.packetId(), response.source(), response.sentFrom());
+                    Scheduler.RUNNER.execute(() -> {
+                        PacketHandler.handle(response.packet(), response.packetId(), response.source(), response.sentFrom());
+
+                        System.out.printf("Received Packet: %s%n", response.packet().getClass().getName());
+                        System.out.printf("From Side: %s%n", response.sentFrom());
+                        System.out.printf("Source: %s%n", response.source());
+                    });
                 }
             } catch (SocketTimeoutException timeoutException) {
                 if (stopping)

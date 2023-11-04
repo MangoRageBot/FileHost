@@ -1,5 +1,6 @@
 package org.mangorage.filehost.networking.packets.main;
 
+import org.mangorage.filehost.core.simplebbuffer.SimpleByteBuffer;
 import org.mangorage.filehost.networking.Side;
 
 import java.io.DataInputStream;
@@ -9,8 +10,8 @@ import java.net.InetSocketAddress;
 
 public class EchoPacket {
 
-    public static EchoPacket decode(DataInputStream data) throws IOException {
-        return new EchoPacket(data.readUTF());
+    public static EchoPacket decode(SimpleByteBuffer data) throws IOException {
+        return new EchoPacket(data.readString());
     }
 
     private final String message;
@@ -23,7 +24,7 @@ public class EchoPacket {
         System.out.println("EchoPacket: " + message);
     }
 
-    public void encode(DataOutputStream data) throws IOException {
-        data.writeUTF(message);
+    public void encode(SimpleByteBuffer data) throws IOException {
+        data.writeString(message);
     }
 }

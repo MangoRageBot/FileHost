@@ -1,7 +1,7 @@
 package org.mangorage.filehost.networking;
 
 import org.mangorage.filehost.networking.packets.core.PacketHandler;
-import org.mangorage.filehost.networking.packets.core.RatelimitedPacketSender;
+import org.mangorage.filehost.networking.packets.core.PacketSender;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -14,7 +14,7 @@ public class ClientManager {
         System.out.println("Connected Client!");
     }
 
-    public static <T> void sendPacketToAll(RatelimitedPacketSender sender, PacketHandler<T> packetHandler, T packet) { // Called from server only
+    public static <T> void sendPacketToAll(PacketSender sender, PacketHandler<T> packetHandler, T packet) { // Called from server only
         CLIENTS.values().stream()
                 //.filter(s -> !NetworkingUtils.getIPString(s).equals(ExIP))
                 .map(ConnectedClient::getAddress)

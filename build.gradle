@@ -30,7 +30,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'java'
 
 group = 'org.mangorage'
-version = '1.5'
+version = '1.6'
 
 repositories {
     mavenCentral()
