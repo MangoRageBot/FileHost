@@ -67,7 +67,7 @@ public class Server extends Thread {
 
                     if (response.packet() instanceof EchoPacket) {
                         Packets.ECHO_PACKET.send(
-                                new EchoPacket("Received! Echo"),
+                                new EchoPacket("ReceivSDDSSDSDSDDSSDed! Echo"),
                                 sender,
                                 response.source()
                         );

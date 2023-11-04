@@ -64,6 +64,12 @@ public class Client extends Thread {
         this.client = new DatagramSocket();
         this.server = new InetSocketAddress(ipArr[0], Integer.parseInt(ipArr[1]));
         this.sender = new PacketSender(Side.CLIENT, client);
+
+        Packets.ECHO_PACKET.send(
+                new EchoPacket("TEST"),
+                sender,
+                server
+        );
     }
 
     @Override

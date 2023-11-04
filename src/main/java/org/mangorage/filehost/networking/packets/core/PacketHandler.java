@@ -1,6 +1,6 @@
 package org.mangorage.filehost.networking.packets.core;
 
-import org.mangorage.filehost.core.simplebbuffer.SimpleByteBuffer;
+import org.mangorage.filehost.core.SimpleByteBuffer;
 import org.mangorage.filehost.networking.Side;
 
 import java.io.IOException;
@@ -32,7 +32,7 @@ public class PacketHandler<T> {
         }
 
         System.out.println("Response: %s %s %s".formatted(packetId, from, PACKETS.get(packetId).clazz));
-        System.out.println("Packet received with size: %s".formatted(headerBuffer.toReadBytes().length));
+        System.out.println("Packet received with size: %s".formatted(headerBuffer.toBytes().length));
         return new PacketResponse<>(
                 PACKETS.get(packetId).getDecoder().decode(packetBuffer),
                 packetId,
@@ -91,9 +91,9 @@ public class PacketHandler<T> {
 
             headerBuffer.writeInt(ID);
             headerBuffer.writeEnum(sender.getSide());
-            headerBuffer.writeBytes(packetBuffer.toWriteBytes());
+            headerBuffer.writeBytes(packetBuffer.toBytes());
 
-            byte[] data = headerBuffer.toWriteBytes();
+            byte[] data = headerBuffer.toBytes();
             if (data.length > PACKET_SIZE) {
                 System.err.println("Unable to send packet %s exceeds packet size of %s, size of packet %s".formatted(packet.getClass().getName(), PACKET_SIZE, data.length));
                 return;

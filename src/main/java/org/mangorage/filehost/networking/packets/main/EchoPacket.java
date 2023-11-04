@@ -1,10 +1,8 @@
 package org.mangorage.filehost.networking.packets.main;
 
-import org.mangorage.filehost.core.simplebbuffer.SimpleByteBuffer;
+import org.mangorage.filehost.core.SimpleByteBuffer;
 import org.mangorage.filehost.networking.Side;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
