@@ -26,12 +26,13 @@ public class Core {
             JFrame frame = new JFrame("Three Input Fields Dialog");
 
             // Create a panel to organize the input fields
-            JPanel panel = new JPanel(new GridLayout(3, 2));
+            JPanel panel = new JPanel(new GridLayout(4, 2));
 
             // Create input fields and labels
             JTextField serverIP = new JTextField(20);
             JTextField serverPort = new JTextField(20);
             JTextField userName = new JTextField(20);
+            JTextField password = new JTextField(20);
 
             serverIP.setText("localhost");
             serverPort.setText(Constants.PORT + "");
@@ -43,6 +44,7 @@ public class Core {
             JLabel serverIpLabel = new JLabel("Server IP:");
             JLabel serverPortlabel = new JLabel("Server Port:");
             JLabel usernameLabel = new JLabel("Username:");
+            JLabel passwordLabel = new JLabel("Server Password:");
 
             // Add input fields and labels to the panel
             panel.add(serverIpLabel);
@@ -51,6 +53,8 @@ public class Core {
             panel.add(serverPort);
             panel.add(usernameLabel);
             panel.add(userName);
+            panel.add(passwordLabel);
+            panel.add(password);
 
             // Create an option pane with the panel
             int result = JOptionPane.showConfirmDialog(null, panel, "Enter three values:", JOptionPane.OK_CANCEL_OPTION);
@@ -60,8 +64,9 @@ public class Core {
                 String IP = serverIP.getText();
                 String PORT = serverPort.getText();
                 String USERNAME = userName.getText();
+                String PASSWORD = password.getText();
 
-                Client.create("%s:%s".formatted(IP, PORT));
+                Client.create("%s:%s".formatted(IP, PORT), USERNAME, PASSWORD);
             }
             frame.pack();
         } else if (type.equalsIgnoreCase("server")) {

@@ -2,26 +2,29 @@ package org.mangorage.filehost;
 
 import org.mangorage.filehost.core.Constants;
 import org.mangorage.filehost.core.Scheduler;
+import org.mangorage.filehost.gui.ChatScreen;
 import org.mangorage.filehost.networking.Side;
 import org.mangorage.filehost.networking.packets.core.PacketSender;
 import org.mangorage.filehost.networking.packets.core.PacketResponse;
 import org.mangorage.filehost.networking.packets.core.PacketHandler;
 import org.mangorage.filehost.networking.packets.core.Packets;
-import org.mangorage.filehost.networking.packets.main.EchoPacket;
+import org.mangorage.filehost.networking.packets.main.ChatMessagePacket;
+import org.mangorage.filehost.networking.packets.main.HandshakePacket;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
 
 public class Client extends Thread {
     private static Client instance;
 
-    public static PacketSender getInstance() {
+    public static Client getInstance() {
+        return instance;
+    }
+    public static PacketSender getSender() {
         if (instance != null)
             return instance.sender;
         return null;
@@ -37,39 +40,55 @@ public class Client extends Thread {
         Constants.init();
         Packets.init();
         // 23.26.60.28:14126
-        instance = new Client("localhost:25565");
+        instance = new Client("localhost:25565", "Developer", Constants.config.password());
         instance.start();
     }
 
-    public static void create(String IP) throws SocketException {
+    public static void create(String IP, String username, String password) throws SocketException {
         if (instance != null) {
             System.out.println("Server already running!");
             return;
         }
-        instance = new Client(IP);
+        instance = new Client(IP, username, password);
         instance.start();
     }
 
     private final SocketAddress server;
     private final DatagramSocket client;
-
     private final PacketSender sender;
+    private final String username;
+    private final ChatScreen chatScreen;
+
     private boolean running = true;
     private boolean stopping = false;
 
-    public Client(String IP) throws SocketException {
+    public Client(String IP, String username, String password) throws SocketException {
         System.out.println("Starting Client Version 1.6 to IP: %s".formatted(IP));
         String[] ipArr = IP.split(":");
 
         this.client = new DatagramSocket();
         this.server = new InetSocketAddress(ipArr[0], Integer.parseInt(ipArr[1]));
         this.sender = new PacketSender(Side.CLIENT, client);
+        this.username = username;
 
-        Packets.ECHO_PACKET.send(
-                new EchoPacket("TEST"),
+        this.chatScreen = ChatScreen.create(message -> {
+            // Send Chat Packet to server...
+            Packets.CHAT_MESSAGE_PACKET.send(
+                    new ChatMessagePacket(message),
+                    sender,
+                    server
+            );
+        });
+
+        Packets.HANDSHAKE_PACKET.send(
+                new HandshakePacket(username, password),
                 sender,
                 server
         );
+    }
+
+    public void addMessage(String message) {
+        chatScreen.addMessage(message);
     }
 
     @Override

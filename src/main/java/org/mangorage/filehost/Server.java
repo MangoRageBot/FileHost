@@ -1,5 +1,6 @@
 package org.mangorage.filehost;
 
+import org.mangorage.filehost.core.Constants;
 import org.mangorage.filehost.core.Scheduler;
 import org.mangorage.filehost.networking.Side;
 import org.mangorage.filehost.networking.packets.core.PacketResponse;
@@ -35,6 +36,7 @@ public class Server extends Thread {
     }
 
     public static void main(String[] args) throws SocketException {
+        Constants.init();
         Packets.init();
         instance = new Server(PORT);
         instance.start();
@@ -67,7 +69,7 @@ public class Server extends Thread {
 
                     if (response.packet() instanceof EchoPacket) {
                         Packets.ECHO_PACKET.send(
-                                new EchoPacket("ReceivSDDSSDSDSDDSSDed! Echo"),
+                                new EchoPacket("Received! Echo"),
                                 sender,
                                 response.source()
                         );

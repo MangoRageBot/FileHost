@@ -9,16 +9,24 @@ import java.net.InetSocketAddress;
 
 public class HandshakePacket {
     public static HandshakePacket decode(SimpleByteBuffer data) {
-        return new HandshakePacket();
+        return new HandshakePacket(data.readString(), data.readString());
     }
 
-    public HandshakePacket() {}
+    private final String username;
+    private final String password;
+    public HandshakePacket(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
 
-    public void encode(SimpleByteBuffer data) {}
+    public void encode(SimpleByteBuffer data) {
+        data.writeString(username);
+        data.writeString(password);
+    }
 
     public void handle(InetSocketAddress origin, Side sentFrom) {
         if (sentFrom == Side.CLIENT) {
-            ClientManager.setConnected(origin);
+            ClientManager.setConnected(origin, username, password);
         }
     }
 }
