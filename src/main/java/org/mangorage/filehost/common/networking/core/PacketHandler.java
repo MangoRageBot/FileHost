@@ -82,7 +82,6 @@ public class PacketHandler<T> {
         SimpleByteBuffer packetBuffer = new SimpleByteBuffer();
         encoder.accept(packet, packetBuffer);
 
-        headerBuffer.writeInt(packetBuffer.toBytes().length); // Packet Size
         headerBuffer.writeInt(ID); // ID
         headerBuffer.writeEnum(sender.getSide()); // Side
         System.out.println(headerBuffer.toBytes().length + " Size of Header....");
