@@ -1,4 +1,4 @@
-package org.mangorage.filehost.core;
+package org.mangorage.filehost.common.core;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

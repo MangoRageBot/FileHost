@@ -1,15 +1,15 @@
-package org.mangorage.filehost;
+package org.mangorage.filehost.client;
 
-import org.mangorage.filehost.core.Constants;
-import org.mangorage.filehost.core.Scheduler;
-import org.mangorage.filehost.gui.ChatScreen;
-import org.mangorage.filehost.networking.Side;
-import org.mangorage.filehost.networking.packets.core.PacketSender;
-import org.mangorage.filehost.networking.packets.core.PacketResponse;
-import org.mangorage.filehost.networking.packets.core.PacketHandler;
-import org.mangorage.filehost.networking.packets.core.Packets;
-import org.mangorage.filehost.networking.packets.main.ChatMessagePacket;
-import org.mangorage.filehost.networking.packets.main.HandshakePacket;
+import org.mangorage.filehost.common.core.Constants;
+import org.mangorage.filehost.common.core.Scheduler;
+import org.mangorage.filehost.client.gui.ChatScreen;
+import org.mangorage.filehost.common.networking.Side;
+import org.mangorage.filehost.common.networking.core.PacketSender;
+import org.mangorage.filehost.common.networking.core.PacketResponse;
+import org.mangorage.filehost.common.networking.core.PacketHandler;
+import org.mangorage.filehost.common.networking.core.Packets;
+import org.mangorage.filehost.common.networking.packets.ChatMessagePacket;
+import org.mangorage.filehost.common.networking.packets.HandshakePacket;
 
 import java.io.IOException;
 import java.net.DatagramSocket;

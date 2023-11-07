@@ -1,8 +1,10 @@
 package org.mangorage.filehost;
 
-import org.mangorage.filehost.core.Constants;
-import org.mangorage.filehost.gui.RegexDocumentFilter;
-import org.mangorage.filehost.networking.packets.core.Packets;
+import org.mangorage.filehost.client.Client;
+import org.mangorage.filehost.common.core.Constants;
+import org.mangorage.filehost.client.gui.RegexDocumentFilter;
+import org.mangorage.filehost.common.networking.core.Packets;
+import org.mangorage.filehost.server.Server;
 
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;

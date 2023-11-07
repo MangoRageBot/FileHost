@@ -1,19 +1,20 @@
-package org.mangorage.filehost.networking.packets.main;
+package org.mangorage.filehost.common.networking.packets;
 
 
-import org.mangorage.filehost.core.SimpleByteBuffer;
-import org.mangorage.filehost.networking.ClientManager;
-import org.mangorage.filehost.networking.Side;
+import org.mangorage.filehost.common.core.buffer.SimpleByteBuffer;
+import org.mangorage.filehost.server.ClientManager;
+import org.mangorage.filehost.common.networking.Side;
 
 import java.net.InetSocketAddress;
 
 public class HandshakePacket {
-    public static HandshakePacket decode(SimpleByteBuffer data) {
-        return new HandshakePacket(data.readString(), data.readString());
-    }
-
     private final String username;
     private final String password;
+
+    public HandshakePacket(SimpleByteBuffer data) {
+        this(data.readString(), data.readString());
+    }
+
     public HandshakePacket(String username, String password) {
         this.username = username;
         this.password = password;

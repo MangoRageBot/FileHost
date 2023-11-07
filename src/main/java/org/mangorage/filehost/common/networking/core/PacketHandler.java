@@ -1,14 +1,17 @@
-package org.mangorage.filehost.networking.packets.core;
+package org.mangorage.filehost.common.networking.core;
 
-import org.mangorage.filehost.core.SimpleByteBuffer;
-import org.mangorage.filehost.networking.Side;
+import org.mangorage.filehost.common.core.buffer.SimpleByteBuffer;
+import org.mangorage.filehost.common.networking.Side;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public class PacketHandler<T> {
     private static final int PACKET_SIZE = 65536;
@@ -34,7 +37,7 @@ public class PacketHandler<T> {
         System.out.println("Response: %s %s %s".formatted(packetId, from, PACKETS.get(packetId).clazz));
         System.out.println("Packet received with size: %s".formatted(headerBuffer.toBytes().length));
         return new PacketResponse<>(
-                PACKETS.get(packetId).getDecoder().decode(packetBuffer),
+                PACKETS.get(packetId).getDecoder().apply(packetBuffer),
                 packetId,
                 from,
                 (InetSocketAddress) datagramPacket.getSocketAddress()
@@ -48,20 +51,11 @@ public class PacketHandler<T> {
         }
     }
 
-
-    public interface IEncoder<T> {
-        void encode(SimpleByteBuffer data, T packet) throws IOException;
-    }
-
-    public interface IDecoder<T> {
-        T decode(SimpleByteBuffer data) throws IOException;
-    }
-
     public interface IHandler<T> {
         void handle(T packet, InetSocketAddress origin, Side side);
     }
 
-    public static <T> PacketHandler<T> create(Class<T> type, int ID, IEncoder<T> encoder, IDecoder<T> decoder, IHandler<T> handler) {
+    public static <T> PacketHandler<T> create(Class<T> type, int ID, BiConsumer<T, SimpleByteBuffer> encoder, Function<SimpleByteBuffer, T> decoder, IHandler<T> handler) {
         System.out.println("Created Packet Handler for: %s (Packet ID: %s)".formatted(type.getName(), ID));
         PacketHandler<T> packetHandler = new PacketHandler<>(type, ID, encoder, decoder, handler);
         PACKETS.put(ID, packetHandler);
@@ -71,11 +65,11 @@ public class PacketHandler<T> {
 
     private final Class<T> clazz;
     private final int ID;
-    private final IEncoder<T> encoder;
-    private final IDecoder<T> decoder;
+    private final BiConsumer<T, SimpleByteBuffer> encoder;
+    private final Function<SimpleByteBuffer, T> decoder;
     private final IHandler<T> handler;
 
-    private PacketHandler(Class<T> type, int ID, IEncoder<T> encoder, IDecoder<T> decoder, IHandler<T> handler) {
+    private PacketHandler(Class<T> type, int ID, BiConsumer<T, SimpleByteBuffer> encoder, Function<SimpleByteBuffer, T> decoder, IHandler<T> handler) {
         this.clazz = type;
         this.ID = ID;
         this.encoder = encoder;
@@ -84,31 +78,28 @@ public class PacketHandler<T> {
     }
 
     public void send(T packet, PacketSender sender, SocketAddress sendTo) {
-        try {
-            SimpleByteBuffer headerBuffer = new SimpleByteBuffer();
-            SimpleByteBuffer packetBuffer = new SimpleByteBuffer();
-            encoder.encode(packetBuffer, packet);
+        SimpleByteBuffer headerBuffer = new SimpleByteBuffer();
+        SimpleByteBuffer packetBuffer = new SimpleByteBuffer();
+        encoder.accept(packet, packetBuffer);
 
-            headerBuffer.writeInt(ID);
-            headerBuffer.writeEnum(sender.getSide());
-            headerBuffer.writeBytes(packetBuffer.toBytes());
+        headerBuffer.writeInt(packetBuffer.toBytes().length); // Packet Size
+        headerBuffer.writeInt(ID); // ID
+        headerBuffer.writeEnum(sender.getSide()); // Side
+        System.out.println(headerBuffer.toBytes().length + " Size of Header....");
+        headerBuffer.writeBytes(packetBuffer.toBytes());
 
-            byte[] data = headerBuffer.toBytes();
-            if (data.length > PACKET_SIZE) {
-                System.err.println("Unable to send packet %s exceeds packet size of %s, size of packet %s".formatted(packet.getClass().getName(), PACKET_SIZE, data.length));
-                return;
-            }
 
-            DatagramPacket datagramPacket = new DatagramPacket(data, data.length, sendTo);
-            sender.send(datagramPacket);
-            System.out.println("Packet Sent with size: %s".formatted(data.length));
-        } catch (IOException e) {
-            System.out.println("Packet Had issue: %s".formatted(packet.getClass()));
-            e.printStackTrace(System.out);
+        byte[] data = headerBuffer.toBytes();
+        if (data.length > PACKET_SIZE) {
+            System.err.println("Unable to send packet %s exceeds packet size of %s, size of packet %s".formatted(packet.getClass().getName(), PACKET_SIZE, data.length));
+            return;
         }
+
+        DatagramPacket datagramPacket = new DatagramPacket(data, data.length, sendTo);
+        sender.send(new Packet(datagramPacket, packet.getClass()));
     }
 
-    public IDecoder<T> getDecoder() {
+    public Function<SimpleByteBuffer, T> getDecoder() {
         return decoder;
     }
 

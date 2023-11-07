@@ -1,4 +1,4 @@
-package org.mangorage.filehost.gui;
+package org.mangorage.filehost.client.gui;
 
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;

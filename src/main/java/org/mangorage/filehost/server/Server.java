@@ -1,20 +1,17 @@
-package org.mangorage.filehost;
+package org.mangorage.filehost.server;
 
-import org.mangorage.filehost.core.Constants;
-import org.mangorage.filehost.core.Scheduler;
-import org.mangorage.filehost.networking.Side;
-import org.mangorage.filehost.networking.packets.core.PacketResponse;
-import org.mangorage.filehost.networking.packets.core.PacketHandler;
-import org.mangorage.filehost.networking.packets.core.Packets;
-import org.mangorage.filehost.networking.packets.core.PacketSender;
-import org.mangorage.filehost.networking.packets.main.EchoPacket;
+import org.mangorage.filehost.common.core.Constants;
+import org.mangorage.filehost.common.networking.Side;
+import org.mangorage.filehost.common.networking.core.PacketResponse;
+import org.mangorage.filehost.common.networking.core.PacketHandler;
+import org.mangorage.filehost.common.networking.core.Packets;
+import org.mangorage.filehost.common.networking.core.PacketSender;
+import org.mangorage.filehost.common.networking.packets.EchoPacket;
 
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
-import java.util.ArrayList;
 
-import static org.mangorage.filehost.core.Constants.PORT;
+import static org.mangorage.filehost.common.core.Constants.PORT;
 
 public class Server extends Thread {
 

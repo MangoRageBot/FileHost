@@ -1,4 +1,4 @@
-package org.mangorage.filehost.gui;
+package org.mangorage.filehost.client.gui;
 import javafx.scene.control.Button;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.HBox;

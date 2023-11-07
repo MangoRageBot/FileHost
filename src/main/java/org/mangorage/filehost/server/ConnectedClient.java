@@ -1,4 +1,4 @@
-package org.mangorage.filehost.networking;
+package org.mangorage.filehost.server;
 
 import java.net.InetSocketAddress;
 

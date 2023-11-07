@@ -1,18 +1,15 @@
-package org.mangorage.filehost.networking.packets.core;
+package org.mangorage.filehost.common.networking.core;
 
-import org.mangorage.filehost.core.Constants;
-import org.mangorage.filehost.networking.Side;
+import org.mangorage.filehost.common.networking.Side;
+import org.mangorage.filehost.common.core.Constants;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class PacketSender {
-    public record Packet(DatagramPacket packet) {}
-
     private final Side side;
     private final DatagramSocket socket;
     private final LinkedList<Packet> packetsToSend = new LinkedList<>();
@@ -36,17 +33,18 @@ public class PacketSender {
         return socket;
     }
 
-    public void send(DatagramPacket packet) throws IOException {
-        packetsToSend.add(new Packet(packet));
+    public void send(Packet packet)  {
+        packetsToSend.add(packet);
     }
-
 
     public void run() {
         try {
             if (packetsToSend.isEmpty()) return;
             var packet = packetsToSend.poll();
             socket.send(packet.packet());
+            System.out.println("Sent Packet (Size: %s Bytes): %s".formatted(packet.packet().getLength(), packet.packetClass().getName()));
         } catch (IOException e) {
+            System.out.println("Packet failed to send properly...");
             throw new RuntimeException(e);
         }
     }

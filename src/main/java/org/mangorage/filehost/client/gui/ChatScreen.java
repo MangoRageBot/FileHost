@@ -1,9 +1,9 @@
-package org.mangorage.filehost.gui;
+package org.mangorage.filehost.client.gui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.function.Consumer;
 
 public class ChatScreen extends JFrame {
@@ -12,7 +12,7 @@ public class ChatScreen extends JFrame {
 
     public ChatScreen(Consumer<String> enterConsumer) {
         setTitle("Chat Screen");
-        setSize(400, 300);
+        setSize(600, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         textArea = new JTextArea(10, 40);
@@ -23,20 +23,29 @@ public class ChatScreen extends JFrame {
 
         messageField = new JTextField(30);
 
-        JButton sendMessageButton = new JButton("Send Message");
-        sendMessageButton.addActionListener(new ActionListener() {
+        JLabel sendMessageLabel = new JLabel("Send Message:");
+
+        messageField.addKeyListener(new KeyListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void keyTyped(KeyEvent e) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
                 String message = messageField.getText();
-                if (!message.isEmpty()) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER && !message.isEmpty()) {
                     enterConsumer.accept(message);
                     messageField.setText(""); // Clear the input field
                 }
             }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+            }
         });
 
         JPanel inputPanel = new JPanel();
-        inputPanel.add(sendMessageButton);
+        inputPanel.add(sendMessageLabel);
         inputPanel.add(messageField);
 
         add(scrollPane, BorderLayout.CENTER);
@@ -49,13 +58,7 @@ public class ChatScreen extends JFrame {
 
     public static ChatScreen create(Consumer<String> enterConsumer) {
         ChatScreen screen = new ChatScreen(enterConsumer);
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                screen.setVisible(true);
-            }
-        });
-
+        SwingUtilities.invokeLater(() -> screen.setVisible(true));
         return screen;
     }
 }

@@ -1,9 +1,8 @@
-package org.mangorage.filehost.gui;
+package org.mangorage.filehost.client.gui;
 
 
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
-import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;

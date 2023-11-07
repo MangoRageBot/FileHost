@@ -12,10 +12,14 @@ buildscript {
         maven {
             url = 'https://repo.mattmalec.com/repository/releases'
         }
+        maven {
+            url = 'https://www.dcm4che.org/maven2/'
+        }
     }
 
     dependencies {
         classpath 'gradle.plugin.com.github.johnrengelman:shadow:7.1.2'
+
     }
 }
 
@@ -51,6 +55,8 @@ dependencies {
     implementation 'org.openjfx:javafx-swing:21.0.1'
 
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation 'net.bytebuddy:byte-buddy-dep:1.14.9'
+    implementation group: 'org.ow2.asm', name: 'asm', version: '9.1'
 
 }
 

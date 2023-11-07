@@ -1,11 +1,45 @@
-package org.mangorage.filehost.core;
+package org.mangorage.filehost.common.core.buffer;
 
-import org.mangorage.filehost.networking.Side;
+import org.mangorage.filehost.common.core.ObjectSerializationManager;
+import org.mangorage.filehost.common.networking.Side;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+
+// TODO: Incorporate Data Types so we can tell if what we are about to read is indeed the correct Data Type
+// We want to make sure when we are calling readInt() that what we are calling is indeed an Integer
 public class SimpleByteBuffer {
+    public enum DataType {
+        // 0x00, 0x01, 0x02, 0x03, 0x04, 0x05 are all taken. Cannot use these... 0xFF is for Uknown
+        INT(0x06),
+        DOUBLE(0x07),
+        UNDEFINED(0xFE),
+        UNKNOWN(0xFF);
+        private final byte dataType;
+        DataType(int dataType) {
+            this.dataType = (byte) dataType;
+        }
+
+        public byte getByte() {
+            return dataType;
+        }
+
+        public boolean isValid(byte b) {
+            return dataType == b;
+        }
+
+        private static DataType getType(byte b) {
+            for (DataType value : DataType.values()) {
+                if (value.getByte() == b)
+                    return value;
+            }
+
+            return UNKNOWN;
+        }
+    }
+
+
     private byte[] data;
     private int writeOffset;
     private int readOffset;
@@ -34,22 +68,18 @@ public class SimpleByteBuffer {
     }
 
     public void writeInt(int value) {
-        ensureCapacity(4);
-        data[writeOffset] = (byte) ((value >> 24) & 0xFF);
-        data[writeOffset + 1] = (byte) ((value >> 16) & 0xFF);
-        data[writeOffset + 2] = (byte) ((value >> 8) & 0xFF);
-        data[writeOffset + 3] = (byte) (value & 0xFF);
-        writeOffset += 4;
+        writeByte((byte) ((value >> 24) & 0xFF));
+        writeByte((byte) ((value >> 16) & 0xFF));
+        writeByte((byte) ((value >> 8) & 0xFF));
+        writeByte((byte) (value & 0xFF));
     }
 
     public Integer readInt() {
         if (readOffset + 4 <= writeOffset) {
-            int value = ((data[readOffset] & 0xFF) << 24) |
-                    ((data[readOffset + 1] & 0xFF) << 16) |
-                    ((data[readOffset + 2] & 0xFF) << 8) |
-                    (data[readOffset + 3] & 0xFF);
-            readOffset += 4;
-            return value;
+            return ((readByte() & 0xFF) << 24) |
+                    ((readByte() & 0xFF) << 16) |
+                    ((readByte() & 0xFF) << 8) |
+                    (readByte() & 0xFF);
         } else {
             System.err.println("Not enough data to read an integer.");
             return null;
@@ -83,17 +113,13 @@ public class SimpleByteBuffer {
     }
 
     public void writeShort(short value) {
-        ensureCapacity(2);
-        data[writeOffset] = (byte) ((value >> 8) & 0xFF);
-        data[writeOffset + 1] = (byte) (value & 0xFF);
-        writeOffset += 2;
+        writeByte((byte) ((value >> 8) & 0xFF));
+        writeByte((byte) (value & 0xFF));
     }
 
     public Short readShort() {
         if (readOffset + 2 <= writeOffset) {
-            short value = (short)(((data[readOffset] & 0xFF) << 8) | (data[readOffset + 1] & 0xFF));
-            readOffset += 2;
-            return value;
+            return (short)(((readByte() & 0xFF) << 8) | (readByte() & 0xFF));
         } else {
             System.err.println("Not enough data to read a short.");
             return null;
@@ -101,30 +127,26 @@ public class SimpleByteBuffer {
     }
 
     public void writeLong(long value) {
-        ensureCapacity(8);
-        data[writeOffset] = (byte) ((value >> 56) & 0xFF);
-        data[writeOffset + 1] = (byte) ((value >> 48) & 0xFF);
-        data[writeOffset + 2] = (byte) ((value >> 40) & 0xFF);
-        data[writeOffset + 3] = (byte) ((value >> 32) & 0xFF);
-        data[writeOffset + 4] = (byte) ((value >> 24) & 0xFF);
-        data[writeOffset + 5] = (byte) ((value >> 16) & 0xFF);
-        data[writeOffset + 6] = (byte) ((value >> 8) & 0xFF);
-        data[writeOffset + 7] = (byte) (value & 0xFF);
-        writeOffset += 8;
+        writeByte((byte) ((value >> 56) & 0xFF));
+        writeByte((byte) ((value >> 48) & 0xFF));
+        writeByte((byte) ((value >> 40) & 0xFF));
+        writeByte((byte) ((value >> 32) & 0xFF));
+        writeByte((byte) ((value >> 24) & 0xFF));
+        writeByte((byte) ((value >> 16) & 0xFF));
+        writeByte((byte) ((value >> 8) & 0xFF));
+        writeByte((byte) (value & 0xFF));
     }
 
     public Long readLong() {
         if (readOffset + 8 <= writeOffset) {
-            long value = ((long)data[readOffset] << 56) |
-                    ((long)(data[readOffset + 1] & 0xFF) << 48) |
-                    ((long)(data[readOffset + 2] & 0xFF) << 40) |
-                    ((long)(data[readOffset + 3] & 0xFF) << 32) |
-                    ((long)(data[readOffset + 4] & 0xFF) << 24) |
-                    ((long)(data[readOffset + 5] & 0xFF) << 16) |
-                    ((long)(data[readOffset + 6] & 0xFF) << 8) |
-                    ((long)(data[readOffset + 7] & 0xFF));
-            readOffset += 8;
-            return value;
+            return  ((long)readByte() << 56) |
+                    ((long)(readByte() & 0xFF) << 48) |
+                    ((long)(readByte() & 0xFF) << 40) |
+                    ((long)(readByte() & 0xFF) << 32) |
+                    ((long)(readByte() & 0xFF) << 24) |
+                    ((long)(readByte() & 0xFF) << 16) |
+                    ((long)(readByte() & 0xFF) << 8) |
+                    ((long)(readByte() & 0xFF));
         } else {
             System.err.println("Not enough data to read a long.");
             return null;
@@ -132,22 +154,20 @@ public class SimpleByteBuffer {
     }
 
     public void writeFloat(float value) {
-        ensureCapacity(4);
         int intBits = Float.floatToIntBits(value);
-        data[writeOffset] = (byte) ((intBits >> 24) & 0xFF);
-        data[writeOffset + 1] = (byte) ((intBits >> 16) & 0xFF);
-        data[writeOffset + 2] = (byte) ((intBits >> 8) & 0xFF);
-        data[writeOffset + 3] = (byte) (intBits & 0xFF);
-        writeOffset += 4;
+        writeByte((byte) ((intBits >> 24) & 0xFF));
+        writeByte((byte) ((intBits >> 16) & 0xFF));
+        writeByte((byte) ((intBits >> 8) & 0xFF));
+        writeByte((byte) (intBits & 0xFF));
     }
 
     public Float readFloat() {
         if (readOffset + 4 <= writeOffset) {
-            int intBits = ((data[readOffset] & 0xFF) << 24) |
-                    ((data[readOffset + 1] & 0xFF) << 16) |
-                    ((data[readOffset + 2] & 0xFF) << 8) |
-                    (data[readOffset + 3] & 0xFF);
-            readOffset += 4;
+            int intBits =
+                    ((readByte() & 0xFF) << 24) |
+                    ((readByte() & 0xFF) << 16) |
+                    ((readByte() & 0xFF) << 8) |
+                    (readByte() & 0xFF);
             return Float.intBitsToFloat(intBits);
         } else {
             System.err.println("Not enough data to read a float.");
@@ -156,30 +176,28 @@ public class SimpleByteBuffer {
     }
 
     public void writeDouble(double value) {
-        ensureCapacity(8);
         long longBits = Double.doubleToLongBits(value);
-        data[writeOffset] = (byte) ((longBits >> 56) & 0xFF);
-        data[writeOffset + 1] = (byte) ((longBits >> 48) & 0xFF);
-        data[writeOffset + 2] = (byte) ((longBits >> 40) & 0xFF);
-        data[writeOffset + 3] = (byte) ((longBits >> 32) & 0xFF);
-        data[writeOffset + 4] = (byte) ((longBits >> 24) & 0xFF);
-        data[writeOffset + 5] = (byte) ((longBits >> 16) & 0xFF);
-        data[writeOffset + 6] = (byte) ((longBits >> 8) & 0xFF);
-        data[writeOffset + 7] = (byte) (longBits & 0xFF);
-        writeOffset += 8;
+        writeByte((byte) ((longBits >> 56) & 0xFF));
+        writeByte((byte) ((longBits >> 48) & 0xFF));
+        writeByte((byte) ((longBits >> 40) & 0xFF));
+        writeByte((byte) ((longBits >> 32) & 0xFF));
+        writeByte((byte) ((longBits >> 24) & 0xFF));
+        writeByte((byte) ((longBits >> 16) & 0xFF));
+        writeByte((byte) ((longBits >> 8) & 0xFF));
+        writeByte((byte) (longBits & 0xFF));
     }
 
     public Double readDouble() {
         if (readOffset + 8 <= writeOffset) {
-            long longBits = ((long)data[readOffset] << 56) |
-                    ((long)(data[readOffset + 1] & 0xFF) << 48) |
-                    ((long)(data[readOffset + 2] & 0xFF) << 40) |
-                    ((long)(data[readOffset + 3] & 0xFF) << 32) |
-                    ((long)(data[readOffset + 4] & 0xFF) << 24) |
-                    ((long)(data[readOffset + 5] & 0xFF) << 16) |
-                    ((long)(data[readOffset + 6] & 0xFF) << 8) |
-                    ((long)(data[readOffset + 7] & 0xFF));
-            readOffset += 8;
+            long longBits =
+                    ((long)readByte() << 56) |
+                    ((long)(readByte() & 0xFF) << 48) |
+                    ((long)(readByte() & 0xFF) << 40) |
+                    ((long)(readByte() & 0xFF) << 32) |
+                    ((long)(readByte() & 0xFF) << 24) |
+                    ((long)(readByte() & 0xFF) << 16) |
+                    ((long)(readByte() & 0xFF) << 8) |
+                    ((long)(readByte() & 0xFF));
             return Double.longBitsToDouble(longBits);
         } else {
             System.err.println("Not enough data to read a double.");
@@ -188,17 +206,13 @@ public class SimpleByteBuffer {
     }
 
     public void writeChar(char value) {
-        ensureCapacity(2);
-        data[writeOffset] = (byte) ((value >> 8) & 0xFF);
-        data[writeOffset + 1] = (byte) (value & 0xFF);
-        writeOffset += 2;
+        writeByte((byte) ((value >> 8) & 0xFF));
+        writeByte((byte) (value & 0xFF));
     }
 
     public Character readChar() {
         if (readOffset + 2 <= writeOffset) {
-            char value = (char)(((data[readOffset] & 0xFF) << 8) | (data[readOffset + 1] & 0xFF));
-            readOffset += 2;
-            return value;
+            return (char)(((readByte() & 0xFF) << 8) | (readByte() & 0xFF));
         } else {
             System.err.println("Not enough data to read a char.");
             return null;
@@ -227,23 +241,18 @@ public class SimpleByteBuffer {
     // Write a string to the byte array
     public void writeString(String value) {
         byte[] stringBytes = value.getBytes(StandardCharsets.UTF_8);
-        writeInt(stringBytes.length);
-        ensureCapacity(stringBytes.length);
-        System.arraycopy(stringBytes, 0, data, writeOffset, stringBytes.length);
-        writeOffset += stringBytes.length;
+        writeBytes(stringBytes);
     }
 
     // Read a string from the byte array
     public String readString() {
-        Integer length = readInt();
-        if (length != null && readOffset + length <= writeOffset) {
-            byte[] stringBytes = Arrays.copyOfRange(data, readOffset, readOffset + length);
-            readOffset += length;
-            return new String(stringBytes, StandardCharsets.UTF_8);
+        byte[] bytes = readBytes();
+        if (bytes != null) {
+            return new String(bytes, StandardCharsets.UTF_8);
         } else {
-            System.err.println("Not enough data to read the string.");
-            return null;
+            System.err.println("Not enough data to read string");
         }
+        return null;
     }
 
     public <E extends Enum> void writeEnum(E Enum) {
@@ -255,12 +264,37 @@ public class SimpleByteBuffer {
         E[] enumConstants = enumClass.getEnumConstants();
         if (ordinal >= 0 && ordinal < enumConstants.length) {
             return enumConstants[ordinal];
+        } else {
+            System.err.println("Not enough data to read enum %s".formatted(enumClass.getName()));
+        }
+        return null;
+    }
+
+    public <T> void writeObject(T object) {
+        SimpleSerializable<T> serializable = ObjectSerializationManager.getSerializer(object);
+        if (serializable != null) {
+            serializable.serialize(object, this);
+        } else {
+            System.err.println("Unable to write Object. No serialization exists");
+        }
+    }
+
+    public <T> T readObject(Class<T> clazz) {
+        SimpleSerializable<T> serializable = ObjectSerializationManager.getSerializer(clazz);
+        if (serializable != null) {
+            return serializable.deserialize(this);
+        } else {
+            System.err.println("Unable to write Object. No serialization exists");
         }
         return null;
     }
 
     public byte[] toBytes() {
         return Arrays.copyOf(data, writeOffset);
+    }
+
+    public byte getNextReadableType() {
+        return data[readOffset];
     }
 
     public void resetReadPosition() {
@@ -277,8 +311,20 @@ public class SimpleByteBuffer {
         data = new byte[32];
     }
 
-
     public static void main(String[] args) {
+        SimpleByteBuffer buffer = new SimpleByteBuffer();
+        buffer.writeInt(102);
+        buffer.writeInt(983);
+        buffer.writeInt(99);
+
+        System.out.println(buffer.readInt());
+
+        System.out.println(buffer.readInt());
+
+        System.out.println(buffer.readInt());
+    }
+
+    public static void mainOld(String[] args) {
         SimpleByteBuffer betterByteBuffer = new SimpleByteBuffer(2_000_000_000);
         betterByteBuffer.writeInt(18384334);
         betterByteBuffer.writeString("TESTING 1");

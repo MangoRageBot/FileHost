@@ -1,11 +1,11 @@
-package org.mangorage.filehost.networking;
+package org.mangorage.filehost.server;
 
-import org.mangorage.filehost.Server;
-import org.mangorage.filehost.core.Constants;
-import org.mangorage.filehost.networking.packets.core.PacketHandler;
-import org.mangorage.filehost.networking.packets.core.PacketSender;
-import org.mangorage.filehost.networking.packets.core.Packets;
-import org.mangorage.filehost.networking.packets.main.ChatMessagePacket;
+import org.mangorage.filehost.common.networking.NetworkingUtils;
+import org.mangorage.filehost.common.networking.core.PacketHandler;
+import org.mangorage.filehost.common.networking.core.Packets;
+import org.mangorage.filehost.common.networking.packets.ChatMessagePacket;
+import org.mangorage.filehost.common.core.Constants;
+import org.mangorage.filehost.common.networking.core.PacketSender;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -17,7 +17,7 @@ public class ClientManager {
         if (attemptedPassword.equals(Constants.config.password())) {
             CLIENTS.put(NetworkingUtils.getIPString(client), new ConnectedClient(client, username));
             System.out.println("Connected Client!");
-            sendPacketToAll(Server.getInstance(), Packets.CHAT_MESSAGE_PACKET, new ChatMessagePacket("[System]: %s joined the Server!".formatted(username)));
+            sendPacketToAll(Server.getInstance(), Packets.CHAT_MESSAGE_PACKET, new ChatMessagePacket("System", "%s joined the Server!".formatted(username)));
         } else {
             System.out.println("Client attempted connection, yet they failed to put in correct password...");
         }
@@ -41,9 +41,6 @@ public class ClientManager {
                             sender,
                             socket
                     );
-                    System.out.println("Sending Sounnd to -> %s".formatted(
-                            NetworkingUtils.getIPString(socket)
-                    ));
                 });
 
     }

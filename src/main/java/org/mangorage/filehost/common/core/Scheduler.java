@@ -1,4 +1,4 @@
-package org.mangorage.filehost.core;
+package org.mangorage.filehost.common.core;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
