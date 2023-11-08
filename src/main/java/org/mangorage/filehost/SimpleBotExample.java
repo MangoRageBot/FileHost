@@ -34,6 +34,31 @@ public class SimpleBotExample {
                 Integer B = Integer.parseInt(a[1]);
                 return "Result: " + (A + B);
             });
+
+            COMMANDS.put("trick", a -> {
+                if (a.length > 3) {
+                    String cmdType = a[0];
+                    String name = a[1];
+                    StringBuilder result = new StringBuilder();
+                    for (int i = 2; i < a.length; i++) {
+                        result.append(a[i]).append(" ");
+                    }
+
+                    if (COMMANDS.containsKey(name))
+                        return "Trick already exists!";
+
+                    if (cmdType.equalsIgnoreCase("-add")) {
+                        COMMANDS.put(name, b -> result.toString());
+                        return "Created New trick";
+                    }
+
+                    return """
+                            !trick -add <ID> <Content>
+                            """;
+                } else {
+                    return "Please provide more args";
+                }
+            });
         }
     }
 
@@ -56,7 +81,7 @@ public class SimpleBotExample {
             var address = new InetSocketAddress("localhost", 25565);
 
             // Handle handshake
-            socket.send(createBasicPacket(1, 1, address, d -> {
+            socket.send(createBasicPacket(2, 1, address, d -> {
                 d.writeString("MangoBot");
                 d.writeString("12345!");
             }));
@@ -66,7 +91,7 @@ public class SimpleBotExample {
             // We respond if someone types in a command...
             Consumer<String> response = s -> {
                 try {
-                    socket.send(createBasicPacket(2, 1, address, d -> {
+                    socket.send(createBasicPacket(3, 1, address, d -> {
                         d.writeString("client");
                         d.writeString(s);
                     }));
@@ -81,7 +106,7 @@ public class SimpleBotExample {
                 SimpleByteBuffer buffer = new SimpleByteBuffer(header.getData());
                 int packetID = buffer.readInt();
                 Side side = buffer.readEnum(Side.class);
-                if (side == Side.SERVER && packetID == 2) {
+                if (side == Side.SERVER && packetID == 3) {
                     SimpleByteBuffer packetData = new SimpleByteBuffer(buffer.readBytes());
                     String username = packetData.readString();
                     String message = packetData.readString();
@@ -91,6 +116,8 @@ public class SimpleBotExample {
                     String[] rawArgs = message.split(" ");
                     if (rawArgs.length == 0) continue;
                     String cmd = rawArgs[0];
+                    System.out.println(cmd);
+                    if (!cmd.startsWith("!")) continue;
                     if (cmd.startsWith("!") && cmd.length() > 1) cmd = cmd.substring(1);
 
                     try {

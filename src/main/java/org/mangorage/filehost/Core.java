@@ -1,9 +1,10 @@
 package org.mangorage.filehost;
 
 import org.mangorage.filehost.client.Client;
+import org.mangorage.filehost.client.ClientConfig;
 import org.mangorage.filehost.common.core.Constants;
 import org.mangorage.filehost.client.gui.RegexDocumentFilter;
-import org.mangorage.filehost.common.networking.core.Packets;
+import org.mangorage.filehost.common.networking.Packets;
 import org.mangorage.filehost.server.Server;
 
 import javax.swing.*;
@@ -36,8 +37,11 @@ public class Core {
             JTextField userName = new JTextField(20);
             JTextField password = new JTextField(20);
 
-            serverIP.setText("localhost");
-            serverPort.setText(Constants.PORT + "");
+            var properties = ClientConfig.CONFIG.loadOrCreate(() -> new ClientConfig("127.0.0.1", Constants.PORT + "", "password", "User"));
+            serverIP.setText(properties.serverIP());
+            serverPort.setText(properties.port());
+            userName.setText(properties.username());
+            password.setText(properties.serverPassword());
 
             ((AbstractDocument)serverIP.getDocument()).setDocumentFilter(new RegexDocumentFilter(RegexDocumentFilter.IPV4_PARTIAL_PATTERN));
             ((AbstractDocument)serverPort.getDocument()).setDocumentFilter(new RegexDocumentFilter(RegexDocumentFilter.NUMBERS_PATTERN, 5));
@@ -67,6 +71,8 @@ public class Core {
                 String PORT = serverPort.getText();
                 String USERNAME = userName.getText();
                 String PASSWORD = password.getText();
+
+                ClientConfig.CONFIG.save(new ClientConfig(IP, PORT, PASSWORD, USERNAME));
 
                 Client.create("%s:%s".formatted(IP, PORT), USERNAME, PASSWORD);
             }

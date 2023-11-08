@@ -2,7 +2,7 @@ package org.mangorage.filehost.server;
 
 import org.mangorage.filehost.common.networking.NetworkingUtils;
 import org.mangorage.filehost.common.networking.core.PacketHandler;
-import org.mangorage.filehost.common.networking.core.Packets;
+import org.mangorage.filehost.common.networking.Packets;
 import org.mangorage.filehost.common.networking.packets.ChatMessagePacket;
 import org.mangorage.filehost.common.core.Constants;
 import org.mangorage.filehost.common.networking.core.PacketSender;

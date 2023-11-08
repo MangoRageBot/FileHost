@@ -1,12 +1,22 @@
-package org.mangorage.filehost.common.networking.core;
+package org.mangorage.filehost.common.networking;
 
+import org.mangorage.filehost.common.networking.core.PacketHandler;
 import org.mangorage.filehost.common.networking.packets.ChatMessagePacket;
 import org.mangorage.filehost.common.networking.packets.EchoPacket;
 import org.mangorage.filehost.common.networking.packets.HandshakePacket;
 import org.mangorage.filehost.common.networking.packets.ObjectPacket;
+import org.mangorage.filehost.common.networking.packets.PingPacket;
 
 public class Packets {
     private static int ID = 0;
+
+    public static final PacketHandler<PingPacket> PING_PACKET = PacketHandler.create(
+            PingPacket.class,
+            ID++,
+            (a, b) -> {},
+            PingPacket::new,
+            (a, b, c) -> {}
+    );
     public static final PacketHandler<EchoPacket> ECHO_PACKET = PacketHandler.create(
             EchoPacket.class,
             ID++,

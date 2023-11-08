@@ -5,7 +5,7 @@ import org.mangorage.filehost.server.Server;
 import org.mangorage.filehost.common.core.buffer.SimpleByteBuffer;
 import org.mangorage.filehost.server.ClientManager;
 import org.mangorage.filehost.common.networking.Side;
-import org.mangorage.filehost.common.networking.core.Packets;
+import org.mangorage.filehost.common.networking.Packets;
 
 import java.net.InetSocketAddress;
 

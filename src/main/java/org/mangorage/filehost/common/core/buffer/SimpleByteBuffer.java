@@ -9,6 +9,9 @@ import java.util.Arrays;
 
 // TODO: Incorporate Data Types so we can tell if what we are about to read is indeed the correct Data Type
 // We want to make sure when we are calling readInt() that what we are calling is indeed an Integer
+/*
+    {HISTORY BUFFER SIZE DATA / 4 BYTES+} {DATA TYPES IN THE ORDER THEY WERE WRITTEN, EACH BEING A BYTE} {THE DATA}
+ */
 public class SimpleByteBuffer {
     public enum DataType {
         // 0x00, 0x01, 0x02, 0x03, 0x04, 0x05 are all taken. Cannot use these... 0xFF is for Uknown

@@ -7,9 +7,10 @@ import org.mangorage.filehost.common.networking.Side;
 import org.mangorage.filehost.common.networking.core.PacketSender;
 import org.mangorage.filehost.common.networking.core.PacketResponse;
 import org.mangorage.filehost.common.networking.core.PacketHandler;
-import org.mangorage.filehost.common.networking.core.Packets;
+import org.mangorage.filehost.common.networking.Packets;
 import org.mangorage.filehost.common.networking.packets.ChatMessagePacket;
 import org.mangorage.filehost.common.networking.packets.HandshakePacket;
+import org.mangorage.filehost.common.networking.packets.PingPacket;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -17,6 +18,8 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.Timer;
+import java.util.concurrent.TimeUnit;
 
 public class Client extends Thread {
     private static Client instance;
@@ -84,6 +87,13 @@ public class Client extends Thread {
                 new HandshakePacket(username, password),
                 sender,
                 server
+        );
+
+        Scheduler.RUNNER.scheduleAtFixedRate(
+                () -> Packets.PING_PACKET.send(new PingPacket(), sender, server),
+                0,
+                5,
+                TimeUnit.SECONDS
         );
     }
 

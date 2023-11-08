@@ -4,7 +4,7 @@ import org.mangorage.filehost.common.core.Constants;
 import org.mangorage.filehost.common.networking.Side;
 import org.mangorage.filehost.common.networking.core.PacketResponse;
 import org.mangorage.filehost.common.networking.core.PacketHandler;
-import org.mangorage.filehost.common.networking.core.Packets;
+import org.mangorage.filehost.common.networking.Packets;
 import org.mangorage.filehost.common.networking.core.PacketSender;
 import org.mangorage.filehost.common.networking.packets.EchoPacket;
 
