@@ -5,7 +5,7 @@ import org.mangorage.filehost.common.networking.core.PacketHandler;
 import org.mangorage.filehost.common.networking.Packets;
 import org.mangorage.filehost.common.networking.packets.ChatMessagePacket;
 import org.mangorage.filehost.common.core.Constants;
-import org.mangorage.filehost.common.networking.core.PacketSender;
+import org.mangorage.filehost.common.networking.core.IPacketSender;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -31,7 +31,7 @@ public class ClientManager {
         return CLIENTS.getOrDefault(NetworkingUtils.getIPString(client), null);
     }
 
-    public static <T> void sendPacketToAll(PacketSender sender, PacketHandler<T> packetHandler, T packet) { // Called from server only
+    public static <T> void sendPacketToAll(IPacketSender sender, PacketHandler<T> packetHandler, T packet) { // Called from server only
         CLIENTS.values().stream()
                 //.filter(s -> !NetworkingUtils.getIPString(s).equals(ExIP))
                 .map(ConnectedClient::getAddress)

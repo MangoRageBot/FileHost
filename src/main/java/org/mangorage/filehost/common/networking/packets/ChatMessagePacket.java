@@ -1,8 +1,8 @@
 package org.mangorage.filehost.common.networking.packets;
 
 import org.mangorage.filehost.client.Client;
+import org.mangorage.filehost.common.core.buffer.SimpleByteBuf;
 import org.mangorage.filehost.server.Server;
-import org.mangorage.filehost.common.core.buffer.SimpleByteBuffer;
 import org.mangorage.filehost.server.ClientManager;
 import org.mangorage.filehost.common.networking.Side;
 import org.mangorage.filehost.common.networking.Packets;
@@ -13,7 +13,7 @@ public class ChatMessagePacket {
     private final String username;
     private final String message;
 
-    public ChatMessagePacket(SimpleByteBuffer buffer) {
+    public ChatMessagePacket(SimpleByteBuf buffer) {
         this(buffer.readString(), buffer.readString());
     }
 
@@ -26,7 +26,7 @@ public class ChatMessagePacket {
         this("client", message);
     }
 
-    public void encode(SimpleByteBuffer buffer) {
+    public void encode(SimpleByteBuf buffer) {
         buffer.writeString(username);
         buffer.writeString(message);
     }

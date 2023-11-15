@@ -1,8 +1,8 @@
 package org.mangorage.filehost.common.networking.packets;
 
+import org.mangorage.filehost.common.core.buffer.SimpleByteBuf;
 import org.mangorage.filehost.common.networking.Side;
 import org.mangorage.filehost.common.core.ByteClassLoader;
-import org.mangorage.filehost.common.core.buffer.SimpleByteBuffer;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
@@ -12,8 +12,8 @@ public class ObjectPacket {
     private final String classname;
     private final byte[] classData;
 
-    public ObjectPacket(SimpleByteBuffer data) {
-        this(data.readString(), data.readBytes());
+    public ObjectPacket(SimpleByteBuf data) {
+        this(data.readString(), data.readByteArray());
     }
 
     public ObjectPacket(String classname, byte[] classData) {
@@ -32,8 +32,8 @@ public class ObjectPacket {
         }
     }
 
-    public void encode(SimpleByteBuffer data) {
+    public void encode(SimpleByteBuf data) {
         data.writeString(classname);
-        data.writeBytes(classData);
+        data.writeByteArray(classData);
     }
 }

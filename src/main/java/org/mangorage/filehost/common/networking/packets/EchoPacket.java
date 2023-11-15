@@ -1,14 +1,14 @@
 package org.mangorage.filehost.common.networking.packets;
 
+import org.mangorage.filehost.common.core.buffer.SimpleByteBuf;
 import org.mangorage.filehost.common.networking.Side;
-import org.mangorage.filehost.common.core.buffer.SimpleByteBuffer;
 
 import java.net.InetSocketAddress;
 
 public class EchoPacket {
     private final String message;
 
-    public EchoPacket(SimpleByteBuffer data) {
+    public EchoPacket(SimpleByteBuf data) {
         this(data.readString());
     }
 
@@ -20,7 +20,7 @@ public class EchoPacket {
         System.out.println("EchoPacket: " + message);
     }
 
-    public void encode(SimpleByteBuffer data) {
+    public void encode(SimpleByteBuf data) {
         data.writeString(message);
     }
 }

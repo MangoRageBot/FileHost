@@ -1,23 +1,31 @@
 package org.mangorage.filehost.server;
 
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.DatagramPacket;
+import io.netty.channel.socket.nio.NioDatagramChannel;
 import org.mangorage.filehost.common.core.Constants;
+import org.mangorage.filehost.common.core.Scheduler;
 import org.mangorage.filehost.common.networking.Side;
 import org.mangorage.filehost.common.networking.core.PacketResponse;
 import org.mangorage.filehost.common.networking.core.PacketHandler;
 import org.mangorage.filehost.common.networking.Packets;
-import org.mangorage.filehost.common.networking.core.PacketSender;
-import org.mangorage.filehost.common.networking.packets.EchoPacket;
+import org.mangorage.filehost.common.networking.core.IPacketSender;
 
-import java.net.DatagramSocket;
 import java.net.SocketException;
 
 import static org.mangorage.filehost.common.core.Constants.PORT;
 
 public class Server extends Thread {
-
     private static Server instance;
 
-    public static PacketSender getInstance() {
+    public static IPacketSender getInstance() {
         if (instance != null)
             return instance.sender;
         return null;
@@ -39,45 +47,54 @@ public class Server extends Thread {
         instance.start();
     }
 
-    private final DatagramSocket server;
-    private final PacketSender sender;
-    private boolean running = true;
-    private boolean stopping = false;
+    private final int port;
+    private IPacketSender sender = new ServerPacketSender(Side.SERVER);
 
-    private Server(int port) throws SocketException {
+    private Server(int port) {
         System.out.println("Starting Server Version 1.6");
-        this.server = new DatagramSocket(port);
-        sender = new PacketSender(Side.SERVER, server);
-
-        System.out.println("Server Started");
+        this.port = port;
     }
 
     @Override
     public void run() {
-        while (!server.isClosed()) {
-            try {
-                PacketResponse<?> response = PacketHandler.receivePacket(server);
-                if (response != null) {
-                    PacketHandler.handle(response.packet(), response.packetId(), response.source(), response.sentFrom());
+        EventLoopGroup group = new NioEventLoopGroup();
+        try {
+            Bootstrap b = new Bootstrap();
+            b.group(group)
+                    .channel(NioDatagramChannel.class)
+                    .option(ChannelOption.SO_BROADCAST, true)
+                    .handler(new ChannelInitializer<Channel>() {
+                        @Override
+                        public void initChannel(final Channel ch) throws Exception {
+                            ch.pipeline().addLast(new SimpleChannelInboundHandler<DatagramPacket>() {
+                                @Override
+                                protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket packet) throws Exception {
+                                    PacketResponse<?> response = PacketHandler.receivePacket(packet);
+                                    if (response != null) {
+                                        Scheduler.RUNNER.execute(() -> {
+                                            PacketHandler.handle(response.packet(), response.packetId(), response.source(), response.sentFrom());
 
-                    System.out.printf("Received Packet: %s%n", response.packet().getClass().getName());
-                    System.out.printf("From Side: %s%n", response.sentFrom());
-                    System.out.printf("Source: %s%n", response.source());
+                                            var client = ClientManager.getClient(response.source());
+                                            client.updateChannel(ctx.channel()); // Updating this connection...
 
-                    if (response.packet() instanceof EchoPacket) {
-                        Packets.ECHO_PACKET.send(
-                                new EchoPacket("Received! Echo"),
-                                sender,
-                                response.source()
-                        );
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
+                                            System.out.printf("Received Packet: %s%n", response.packet().getClass().getName());
+                                            System.out.printf("From Side: %s%n", response.sentFrom());
+                                            System.out.printf("Source: %s%n", response.source());
+                                        });
+                                    }
+                                }
+                            });
 
-            if (stopping)
-                running = false;
+                            System.out.println("Server Started");
+                        }
+                    });
+
+
+            b.bind(port).sync().channel().closeFuture().await();
+        } catch (Exception e) {
+
+        } finally {
+            group.shutdownGracefully();
         }
     }
 }

@@ -1,8 +1,8 @@
 package org.mangorage.filehost.common.networking.packets;
 
-import org.mangorage.filehost.common.core.buffer.SimpleByteBuffer;
+import org.mangorage.filehost.common.core.buffer.SimpleByteBuf;
 
 public class PingPacket {
     public PingPacket() {}
-    public PingPacket(SimpleByteBuffer data) {}
+    public PingPacket(SimpleByteBuf data) {}
 }

@@ -1,11 +1,11 @@
 package org.mangorage.filehost.common.core;
 
-import org.mangorage.filehost.common.core.buffer.SimpleByteBuffer;
 import org.mangorage.filehost.common.core.buffer.SimpleSerializable;
 
 import java.util.HashMap;
 
 public class ObjectSerializationManager {
+    /**
     public record Container(int value) {}
     public record Example(String result, Container container) {}
 
@@ -66,4 +66,5 @@ public class ObjectSerializationManager {
         System.out.println(cool.result());
         System.out.println(cool.container().value());
     }
+    **/
 }

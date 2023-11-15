@@ -1,7 +1,7 @@
 package org.mangorage.filehost.common.networking.packets;
 
 
-import org.mangorage.filehost.common.core.buffer.SimpleByteBuffer;
+import org.mangorage.filehost.common.core.buffer.SimpleByteBuf;
 import org.mangorage.filehost.server.ClientManager;
 import org.mangorage.filehost.common.networking.Side;
 
@@ -11,7 +11,7 @@ public class HandshakePacket {
     private final String username;
     private final String password;
 
-    public HandshakePacket(SimpleByteBuffer data) {
+    public HandshakePacket(SimpleByteBuf data) {
         this(data.readString(), data.readString());
     }
 
@@ -20,7 +20,7 @@ public class HandshakePacket {
         this.password = password;
     }
 
-    public void encode(SimpleByteBuffer data) {
+    public void encode(SimpleByteBuf data) {
         data.writeString(username);
         data.writeString(password);
     }

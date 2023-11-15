@@ -1,6 +1,5 @@
 package org.mangorage.filehost;
 
-import org.mangorage.filehost.common.core.buffer.SimpleByteBuffer;
 import org.mangorage.filehost.common.networking.Side;
 
 import java.io.IOException;
@@ -12,6 +11,7 @@ import java.util.HashMap;
 import java.util.function.Consumer;
 
 public class SimpleBotExample {
+    /**
 
     public interface ICommand {
         String handle(String[] args);
@@ -129,4 +129,5 @@ public class SimpleBotExample {
             }
         }
     }
+     **/
 }
