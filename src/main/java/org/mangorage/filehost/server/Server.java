@@ -63,7 +63,7 @@ public class Server extends Thread {
             b.group(group)
                     .channel(NioDatagramChannel.class)
                     .option(ChannelOption.SO_BROADCAST, true)
-                    .handler(new ChannelInitializer<Channel>() {
+                    .handler(new ChannelInitializer<>() {
                         @Override
                         public void initChannel(final Channel ch) throws Exception {
                             ch.pipeline().addLast(new SimpleChannelInboundHandler<DatagramPacket>() {
@@ -77,7 +77,7 @@ public class Server extends Thread {
                                             var client = ClientManager.getClient(response.source());
                                             client.updateChannel(ctx.channel()); // Updating this connection...
 
-                                            System.out.printf("Received Packet: %s%n", response.packet().getClass().getName());
+                                            System.out.printf("Received Packet: %s%n", response.packetName());
                                             System.out.printf("From Side: %s%n", response.sentFrom());
                                             System.out.printf("Source: %s%n", response.source());
                                         });

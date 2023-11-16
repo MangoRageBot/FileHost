@@ -14,6 +14,7 @@ import org.mangorage.filehost.common.core.Constants;
 import org.mangorage.filehost.common.core.Scheduler;
 import org.mangorage.filehost.client.gui.ChatScreen;
 import org.mangorage.filehost.common.networking.Side;
+import org.mangorage.filehost.common.networking.core.EmptyPacket;
 import org.mangorage.filehost.common.networking.core.IPacketSender;
 import org.mangorage.filehost.common.networking.core.PacketResponse;
 import org.mangorage.filehost.common.networking.core.PacketHandler;
@@ -51,7 +52,7 @@ public class Client extends Thread {
         Constants.init();
         Packets.init();
         // 23.26.60.28:14126
-        instance = new Client("localhost:25565", "Developer", Constants.config.password());
+        instance = new Client("localhost:25564", "Developer", Constants.config.password());
         instance.start();
     }
 
@@ -142,7 +143,7 @@ public class Client extends Thread {
 
                                             Client.this.channel.set(ctx.channel());
 
-                                            System.out.printf("Received Packet: %s%n", response.packet().getClass().getName());
+                                            System.out.printf("Received Packet: %s%n", response.packetName());
                                             System.out.printf("From Side: %s%n", response.sentFrom());
                                             System.out.printf("Source: %s%n", response.source());
                                         });
@@ -168,7 +169,7 @@ public class Client extends Thread {
                             );
 
                             Scheduler.RUNNER.scheduleAtFixedRate(
-                                    () -> Packets.PING_PACKET.send(new PingPacket(), sender, server),
+                                    () -> Packets.PING_PACKET.send(EmptyPacket.INSTANCE, sender, server),
                                     0,
                                     5,
                                     TimeUnit.SECONDS

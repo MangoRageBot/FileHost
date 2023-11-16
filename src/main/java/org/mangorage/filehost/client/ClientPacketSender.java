@@ -46,7 +46,7 @@ public class ClientPacketSender implements IPacketSender {
             var channel = ClientPacketSender.this.channel.get();
             if (channel != null && channel.isOpen()) {
                 channel.writeAndFlush(packet.packet()).sync();
-                System.out.println("Sent Packet (Size: %s Bytes): %s".formatted(packet.packet().content().readableBytes(), packet.packetClass().getName()));
+                System.out.println("Sending Packet %s to %s with size of %s bytes".formatted(packet.packetName(), getSide(), packet.packet().content().readableBytes()));
             }
         } catch (Exception e) {
             System.out.println("Packet failed to send properly...");

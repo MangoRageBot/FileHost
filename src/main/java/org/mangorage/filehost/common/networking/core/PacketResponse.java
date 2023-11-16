@@ -4,4 +4,4 @@ import org.mangorage.filehost.common.networking.Side;
 
 import java.net.InetSocketAddress;
 
-public record PacketResponse<T>(T packet, int packetId, Side sentFrom, InetSocketAddress source){}
+public record PacketResponse<T>(T packet, String packetName, int packetId, Side sentFrom, InetSocketAddress source){}

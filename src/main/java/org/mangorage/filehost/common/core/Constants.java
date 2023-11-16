@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class Constants {
-    public static final int PORT = 25565;
+    public static final int PORT = 25564;
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     public record Config(int packetRate, String password) {}
     public static final Config config;

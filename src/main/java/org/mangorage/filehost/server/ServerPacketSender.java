@@ -4,7 +4,6 @@ package org.mangorage.filehost.server;
 // Handles sending Packets to client
 
 import io.netty.channel.Channel;
-import org.mangorage.filehost.client.ClientPacketSender;
 import org.mangorage.filehost.common.core.Constants;
 import org.mangorage.filehost.common.networking.Side;
 import org.mangorage.filehost.common.networking.core.IPacketSender;
@@ -48,7 +47,7 @@ public class ServerPacketSender implements IPacketSender {
                 Channel channel = clientToSendDataTo.getActiveChannel();
                 if (channel.isActive()) {
                     channel.writeAndFlush(packet.packet()).sync();
-                    System.out.println("Sent Packet (Size: %s Bytes): %s".formatted(packet.packet().content().readableBytes(), packet.packetClass().getName()));
+                    System.out.println("Sending Packet %s to %s with size of %s bytes".formatted(packet.packetName(), getSide(), packet.packet().content().readableBytes()));
                 }
             }
 
