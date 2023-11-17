@@ -15,13 +15,12 @@ import org.mangorage.filehost.common.core.Scheduler;
 import org.mangorage.filehost.client.gui.ChatScreen;
 import org.mangorage.filehost.common.networking.Side;
 import org.mangorage.filehost.common.networking.core.EmptyPacket;
-import org.mangorage.filehost.common.networking.core.IPacketSender;
+import org.mangorage.filehost.common.networking.core.PacketSender;
 import org.mangorage.filehost.common.networking.core.PacketResponse;
 import org.mangorage.filehost.common.networking.core.PacketHandler;
 import org.mangorage.filehost.common.networking.Packets;
 import org.mangorage.filehost.common.networking.packets.ChatMessagePacket;
 import org.mangorage.filehost.common.networking.packets.HandshakePacket;
-import org.mangorage.filehost.common.networking.packets.PingPacket;
 
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
@@ -36,7 +35,7 @@ public class Client extends Thread {
     public static Client getInstance() {
         return instance;
     }
-    public static IPacketSender getSender() {
+    public static PacketSender getSender() {
         if (instance != null)
             return instance.sender;
         return null;
@@ -72,7 +71,7 @@ public class Client extends Thread {
 
 
     private final AtomicReference<Channel> channel = new AtomicReference<>();
-    private final IPacketSender sender = new ClientPacketSender(Side.CLIENT, channel);
+    private final PacketSender sender = new ClientPacketSender(Side.CLIENT, channel);
     private ChatScreen chatScreen;
 
     private boolean running = true;

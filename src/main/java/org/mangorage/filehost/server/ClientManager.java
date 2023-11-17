@@ -5,13 +5,36 @@ import org.mangorage.filehost.common.networking.core.PacketHandler;
 import org.mangorage.filehost.common.networking.Packets;
 import org.mangorage.filehost.common.networking.packets.ChatMessagePacket;
 import org.mangorage.filehost.common.core.Constants;
-import org.mangorage.filehost.common.networking.core.IPacketSender;
+import org.mangorage.filehost.common.networking.core.PacketSender;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientManager {
-    private static final HashMap<String, ConnectedClient> CLIENTS = new HashMap<>();
+    private static final ConcurrentHashMap<String, ConnectedClient> CLIENTS = new ConcurrentHashMap<>();
+    private static final Timer timer = new Timer();
+
+    public static void initTracker(PacketSender sender) {
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                CLIENTS.forEach((id, c) -> {
+                    if (c.getActiveChannel() != null && System.currentTimeMillis() - c.getLastPing() > 10000) {
+                        CLIENTS.remove(id);
+                        sendPacketToAll(
+                                sender,
+                                Packets.CHAT_MESSAGE_PACKET,
+                                new ChatMessagePacket("System", "%s has disconnected!".formatted(c.getUsername()))
+                        );
+                    }
+                });
+            }
+        }, 0, 100);
+    }
+
 
     public static void setConnected(InetSocketAddress client, String username, String attemptedPassword) {
         if (attemptedPassword.equals(Constants.config.password())) {
@@ -31,7 +54,7 @@ public class ClientManager {
         return CLIENTS.getOrDefault(NetworkingUtils.getIPString(client), null);
     }
 
-    public static <T> void sendPacketToAll(IPacketSender sender, PacketHandler<T> packetHandler, T packet) { // Called from server only
+    public static <T> void sendPacketToAll(PacketSender sender, PacketHandler<T> packetHandler, T packet) { // Called from server only
         CLIENTS.values().stream()
                 //.filter(s -> !NetworkingUtils.getIPString(s).equals(ExIP))
                 .map(ConnectedClient::getAddress)

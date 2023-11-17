@@ -94,7 +94,7 @@ public class PacketHandler<T> {
         this.handler = handler;
     }
 
-    public void send(T packet, IPacketSender sender, InetSocketAddress sendTo) {
+    public void send(T packet, PacketSender sender, InetSocketAddress sendTo) {
         SimpleByteBuf headerBuffer = new SimpleByteBuf(Unpooled.buffer(8));
         SimpleByteBuf packetBuffer = new SimpleByteBuf(Unpooled.buffer(8));
         encoder.accept(packet, packetBuffer);

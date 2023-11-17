@@ -1,5 +1,7 @@
 package org.mangorage.filehost;
 
+import io.netty.buffer.Unpooled;
+import org.mangorage.filehost.common.core.buffer.SimpleByteBuf;
 import org.mangorage.filehost.common.networking.Side;
 
 import java.io.IOException;
@@ -11,7 +13,6 @@ import java.util.HashMap;
 import java.util.function.Consumer;
 
 public class SimpleBotExample {
-    /**
 
     public interface ICommand {
         String handle(String[] args);
@@ -64,21 +65,21 @@ public class SimpleBotExample {
 
 
 
-    public static DatagramPacket createBasicPacket(int packetID, int sideID, InetSocketAddress address, Consumer<SimpleByteBuffer> packetBuffer) {
-        SimpleByteBuffer header = new SimpleByteBuffer();
-        SimpleByteBuffer packet = new SimpleByteBuffer();
+    public static DatagramPacket createBasicPacket(int packetID, int sideID, InetSocketAddress address, Consumer<SimpleByteBuf> packetBuffer) {
+        SimpleByteBuf header = new SimpleByteBuf(Unpooled.buffer());
+        SimpleByteBuf packet = new SimpleByteBuf(Unpooled.buffer());
         header.writeInt(packetID);
         header.writeInt(sideID);
         packetBuffer.accept(packet);
-        header.writeBytes(packet.toBytes());
-        byte[] data = header.toBytes();
+        header.writeByteArray(packet.array());
+        byte[] data = header.array();
         return new DatagramPacket(data, data.length, address);
     }
 
 
     public static void main(String[] args) throws IOException {
         try (DatagramSocket socket = new DatagramSocket()) {
-            var address = new InetSocketAddress("localhost", 25565);
+            var address = new InetSocketAddress("localhost", 25564);
 
             // Handle handshake
             socket.send(createBasicPacket(2, 1, address, d -> {
@@ -103,11 +104,11 @@ public class SimpleBotExample {
             while (!socket.isClosed()) {
                 DatagramPacket header = new DatagramPacket(new byte[65536], 65536);
                 socket.receive(header);
-                SimpleByteBuffer buffer = new SimpleByteBuffer(header.getData());
+                SimpleByteBuf buffer = new SimpleByteBuf(Unpooled.wrappedBuffer(header.getData()));
                 int packetID = buffer.readInt();
                 Side side = buffer.readEnum(Side.class);
                 if (side == Side.SERVER && packetID == 3) {
-                    SimpleByteBuffer packetData = new SimpleByteBuffer(buffer.readBytes());
+                    SimpleByteBuf packetData = new SimpleByteBuf(Unpooled.wrappedBuffer(buffer.readByteArray()));
                     String username = packetData.readString();
                     String message = packetData.readString();
 
@@ -129,5 +130,4 @@ public class SimpleBotExample {
             }
         }
     }
-     **/
 }

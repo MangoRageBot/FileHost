@@ -8,15 +8,17 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import org.jetbrains.annotations.NotNull;
 import org.mangorage.filehost.common.core.Constants;
 import org.mangorage.filehost.common.core.Scheduler;
 import org.mangorage.filehost.common.networking.Side;
 import org.mangorage.filehost.common.networking.core.PacketResponse;
 import org.mangorage.filehost.common.networking.core.PacketHandler;
 import org.mangorage.filehost.common.networking.Packets;
-import org.mangorage.filehost.common.networking.core.IPacketSender;
+import org.mangorage.filehost.common.networking.core.PacketSender;
 
 import java.net.SocketException;
 
@@ -25,7 +27,7 @@ import static org.mangorage.filehost.common.core.Constants.PORT;
 public class Server extends Thread {
     private static Server instance;
 
-    public static IPacketSender getInstance() {
+    public static PacketSender getInstance() {
         if (instance != null)
             return instance.sender;
         return null;
@@ -48,11 +50,12 @@ public class Server extends Thread {
     }
 
     private final int port;
-    private IPacketSender sender = new ServerPacketSender(Side.SERVER);
+    private final PacketSender sender = new ServerPacketSender(Side.SERVER);
 
     private Server(int port) {
         System.out.println("Starting Server Version 1.6");
         this.port = port;
+        ClientManager.initTracker(sender);
     }
 
     @Override
@@ -60,12 +63,14 @@ public class Server extends Thread {
         EventLoopGroup group = new NioEventLoopGroup();
         try {
             Bootstrap b = new Bootstrap();
+
             b.group(group)
                     .channel(NioDatagramChannel.class)
                     .option(ChannelOption.SO_BROADCAST, true)
                     .handler(new ChannelInitializer<>() {
                         @Override
                         public void initChannel(final Channel ch) throws Exception {
+
                             ch.pipeline().addLast(new SimpleChannelInboundHandler<DatagramPacket>() {
                                 @Override
                                 protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket packet) throws Exception {

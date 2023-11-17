@@ -7,13 +7,21 @@ import org.mangorage.filehost.common.networking.packets.EchoPacket;
 import org.mangorage.filehost.common.networking.packets.HandshakePacket;
 import org.mangorage.filehost.common.networking.packets.ObjectPacket;
 import org.mangorage.filehost.common.networking.packets.PingPacket;
+import org.mangorage.filehost.server.ClientManager;
 
 public class Packets {
     private static int ID = 0;
 
-    public static final PacketHandler<EmptyPacket> PING_PACKET = PacketHandler.createEmptyNoHandler(
+    public static final PacketHandler<EmptyPacket> PING_PACKET = PacketHandler.createEmpty(
             "PING_PACKET",
-            ID++
+            ID++,
+            (p, a, s) -> {
+                if (s == Side.CLIENT) {
+                    var client = ClientManager.getClient(a);
+                    if (client != null)
+                        client.ping();
+                }
+            }
     );
     public static final PacketHandler<EchoPacket> ECHO_PACKET = PacketHandler.create(
             EchoPacket.class,
