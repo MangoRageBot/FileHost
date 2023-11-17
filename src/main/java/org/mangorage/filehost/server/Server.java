@@ -69,7 +69,7 @@ public class Server extends Thread {
                     .option(ChannelOption.SO_BROADCAST, true)
                     .handler(new ChannelInitializer<>() {
                         @Override
-                        public void initChannel(final Channel ch) throws Exception {
+                        public void initChannel(final Channel ch) {
 
                             ch.pipeline().addLast(new SimpleChannelInboundHandler<DatagramPacket>() {
                                 @Override

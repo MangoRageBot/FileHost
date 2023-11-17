@@ -1,13 +1,14 @@
 package org.mangorage.filehost.common.networking;
 
+import org.mangorage.filehost.client.Client;
 import org.mangorage.filehost.common.networking.core.EmptyPacket;
 import org.mangorage.filehost.common.networking.core.PacketHandler;
 import org.mangorage.filehost.common.networking.packets.ChatMessagePacket;
 import org.mangorage.filehost.common.networking.packets.EchoPacket;
 import org.mangorage.filehost.common.networking.packets.HandshakePacket;
 import org.mangorage.filehost.common.networking.packets.ObjectPacket;
-import org.mangorage.filehost.common.networking.packets.PingPacket;
 import org.mangorage.filehost.server.ClientManager;
+import org.mangorage.filehost.server.Server;
 
 public class Packets {
     private static int ID = 0;
@@ -20,6 +21,15 @@ public class Packets {
                     var client = ClientManager.getClient(a);
                     if (client != null)
                         client.ping();
+                    if (Server.getInstance() != null) {
+                        Packets.PING_PACKET.send(
+                                EmptyPacket.INSTANCE,
+                                Server.getInstance(),
+                                a
+                        );
+                    }
+                } else {
+                    Client.getInstance().ping();
                 }
             }
     );

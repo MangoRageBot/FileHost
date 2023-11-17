@@ -8,13 +8,16 @@ import java.util.function.Consumer;
 
 public class ChatScreen extends JFrame {
     private JTextArea textArea;
+    private JCheckBox notification;
     private JTextField messageField;
+
 
     public ChatScreen(Consumer<String> enterConsumer) {
         setTitle("Chat Screen");
         setSize(600, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        notification = new JCheckBox();
         textArea = new JTextArea(10, 40);
         textArea.setEditable(false);
 
@@ -45,6 +48,7 @@ public class ChatScreen extends JFrame {
         });
 
         JPanel inputPanel = new JPanel();
+        inputPanel.add(notification);
         inputPanel.add(sendMessageLabel);
         inputPanel.add(messageField);
 
@@ -53,6 +57,9 @@ public class ChatScreen extends JFrame {
     }
 
     public void addMessage(String message) {
+
+        // Make noise
+
         textArea.append(message + "\n");
     }
 
